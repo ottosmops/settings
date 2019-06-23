@@ -98,7 +98,7 @@ class Setting extends Model
      *
      * @param  string $key
      * @param  mixed  $default is returned if value is empty (except boolean false)
-     * @return mixec
+     * @return mixed
      */
     public static function getValue(string $key, $default = null)
     {
