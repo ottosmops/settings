@@ -2,14 +2,25 @@
     "name": "ottosmops/settings",
     "description": "A simple settings package for laravel",
     "type": "library",
-    "license": "MIT",
+    "keywords": [
+        "anton",
+        "ottosmops",
+        "laravel",
+        "settings"
+    ],
     "authors": [
         {
-            "name": "Andreas Kraenzle",
-            "email": "kraenzle@k-r.ch"
+            "name": "ak",
+            "email": "kraenzle@k-r.ch",
+            "homepage": "https://wwwk-r.ch"
         }
     ],
-    "require": {},
+    "homepage": "https://github.com/ottosmops/settings",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.2",
+        "laravel": ">=5.5",
+    },
     "require-dev": {
         "orchestra/testbench": "^3.8"
     },
