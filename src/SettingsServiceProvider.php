@@ -16,6 +16,6 @@ class SettingsServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $configPath =  __DIR__ . '/../config/settings.php';
+
     }
 }
