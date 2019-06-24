@@ -1,4 +1,4 @@
- build:
+build:
     environment:
         php:
             version: '7.3'
