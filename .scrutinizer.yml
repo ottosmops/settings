@@ -1,5 +1,10 @@
+ build:
+    environment:
+        php:
+            version: '7.3'
+
 filter:
-    paths: [lib/*]
+    paths: [src/*]
     excluded_paths: [vendor/*, tests/*]
 before_commands:
     - 'composer install --dev --prefer-source'
