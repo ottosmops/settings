@@ -12,4 +12,5 @@ install:
   - travis_retry composer install --no-interaction --prefer-dist
 
 script:
-  - vendor/bin/phpunit  --verbose
+  - phpunit --coverage-text --coverage-clover=coverage.clover
+  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover

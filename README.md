@@ -21,7 +21,7 @@ If you want to rename the database table, you can do this within `config/setting
 php artisan migrate 
 ```
 
-## Decription
+## Description
 
 The package installs a table `settings` and uses an ordinary Model `setting`. So all the standard methods are available. The helper `setting('key')` and the static method `Setting::getValue('key')` use an array which is Cached. If a setting is created, updated or deleted the cached is forgotten.
 
