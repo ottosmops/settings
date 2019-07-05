@@ -76,18 +76,15 @@ class Setting extends Model
             case 'arr':
             case 'array':
                 return json_decode($value, true);
-                break;
             case 'int':
             case 'integer':
                 return intval($value);
-                break;
             case 'bool':
             case 'boolean':
                 if ($value === "false") {
                     return false;
                 }
                 return boolval($value);
-                break;
             default:
                 return trim($value, '"');
         }
