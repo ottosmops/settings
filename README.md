@@ -1,7 +1,6 @@
 # Just another simple settings package for Laravel. 
 
 [![Software License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
-[![Latest Stable Version](https://poser.pugx.org/ottosmops/settings/v/stable?format=flat-square)](https://packagist.org/packages/ottosmops/settings)
 [![Code Coverage](https://scrutinizer-ci.com/g/ottosmops/settings/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/ottosmops/settings/?branch=master)
 [![Build Status](https://travis-ci.org/ottosmops/settings.svg?branch=master)](https://travis-ci.org/ottosmops/settings)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
