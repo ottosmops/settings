@@ -39,5 +39,12 @@
         "psr-4": {
             "Ottosmops\\Settings\\Tests\\": "tests/"
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ottosmops\\Settings\\SettingsServiceProvider"
+            ]
+        }
     }
 }
