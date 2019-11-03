@@ -13,13 +13,11 @@ class SettingsServiceProvider extends ServiceProvider
         ], 'config');
 
         $this->publishes([
-                __DIR__ . '/../database/migrations/0000_00_00_create_settings_table.php' => base_path() . '/database/migrations/'. date('Y_m_d_His', time()) . '_create_settings_table.php'
+                __DIR__ . '/../database/migrations/0000_00_00__create_settings_table.php' => base_path() . '/database/migrations/'. date('Y_m_d_His', time()) . '_create_settings_table.php'
         ], 'migrations');
-
     }
 
     public function register()
     {
-
     }
 }
