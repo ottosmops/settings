@@ -213,7 +213,7 @@ class Setting extends Model
     {
         if ('mysql' === \DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
             return Cache::rememberForever('settings.rules', function () {
-                return Setting::select(\DB::raw('concat(rules, "|", $type) as rules, key'))
+                return Setting::select(\DB::raw('concat(rules, "|", type) as rules, key'))
                             ->pluck('rules', 'key')
                             ->toArray();
             });
