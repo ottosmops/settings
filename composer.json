@@ -25,9 +25,6 @@
         "orchestra/testbench": "^3.8"
     },
      "autoload": {
-        "classmap": [
-            "database/migrations/"
-        ],
         "psr-4": {
             "Ottosmops\\Settings\\": "src/"
         },
