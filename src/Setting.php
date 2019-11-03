@@ -233,6 +233,7 @@ class Setting extends Model
     public static function flushCache()
     {
         Cache::forget('settings.all');
+        Cache::forget('settings.rules');
     }
 
     /**
