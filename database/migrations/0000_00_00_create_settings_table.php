@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class SettingsTable extends Migration
+class CreateSettingsTable extends Migration
 {
     protected $table;
 
@@ -35,7 +35,7 @@ class SettingsTable extends Migration
             $table->string('scope')->nullable();
             $table->tinyInteger('editable')->nullable();
             $table->string('rules')->nullable();
-            $table->text('descritpion')->nullable();
+            $table->text('description')->nullable();
         });
     }
 
