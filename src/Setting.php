@@ -11,6 +11,8 @@ use Ottosmops\Settings\Exceptions\NoKeyIsFound;
 
 class Setting extends Model
 {
+    protected $keyType = 'string';
+
     protected $guarded = [];
 
     public $timestamps = false;
