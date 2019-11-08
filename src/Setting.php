@@ -203,7 +203,8 @@ class Setting extends Model
      */
     public function validateNewValue($value) : bool
     {
-        return !Validator::make([$this->key => $value], self::getValidationRules())->fails();
+        $validator = Validator::make([$this->key => $value], self::getValidationRules());
+        return !$validator->fails();
     }
 
     /**
@@ -215,7 +216,7 @@ class Setting extends Model
     {
         if ('mysql' === \DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
             return Cache::rememberForever('settings.rules', function () {
-                return Setting::select(\DB::raw('concat(rules, "|", type) as rules, `key`'))
+                return Setting::select(\DB::raw('concat_ws("|", rules, type) as rules, `key`'))
                             ->pluck('rules', 'key')
                             ->toArray();
             });

@@ -84,12 +84,11 @@ class SettingsTest extends TestCase
     /** @test */
     public function test_set_and_get_setting_array()
     {
-        Setting::create(['key' => 'test_array', 'type' => 'array', 'rules' => 'nullable|array']);
+        Setting::create(['key' => 'test_array', 'type' => 'array', 'rules' => 'array']);
         Setting::setValue('test_array', ['hans' => 'dampf']);
-
         $actual = setting('test_array');
         $this->assertIsArray($actual);
-        $this->assertEquals(setting('test_array'), $actual);
+        $this->assertEquals(setting('test_array'), ['hans' => 'dampf']);
 
         $rules = Setting::getValidationRules();
         $validator = \Validator::make(['test_array' => setting('test_array')], $rules);
@@ -174,10 +173,22 @@ class SettingsTest extends TestCase
     public function test_validate_new_value()
     {
         $setting = Setting::create(['key' => 'string', 'type' => 'string', 'rules' => 'nullable|string']);
-        $value = 'string';
+        $value = 'string value';
         $this->assertTrue($setting->validateNewValue($value));
         $value = 22;
         $this->assertFalse($setting->validateNewValue($value));
+        Setting::setValue('string', 'neuer string value');
+        $this->assertEquals('neuer string value', Setting::getValue('string'));
+    }
+
+    /** test */
+    public function test_bool_value_with_no_rules()
+    {
+        $setting = Setting::create(['key' => 'true', 'type' => 'boolean']);
+        $value = true;
+        Setting::setValue('true', $value);
+        $this->assertTrue(Setting::getValue('true'));
+        $this->assertIsBool(Setting::getValue('true'));
     }
 
     /** @test */
