@@ -84,11 +84,12 @@ class SettingsTest extends TestCase
     /** @test */
     public function test_set_and_get_setting_array()
     {
+        $array = ['hans' => 'dampf', 'in' => 'allen', 'gassen'];
         Setting::create(['key' => 'test_array', 'type' => 'array', 'rules' => 'array']);
-        Setting::setValue('test_array', ['hans' => 'dampf']);
+        Setting::setValue('test_array', $array);
         $actual = setting('test_array');
         $this->assertIsArray($actual);
-        $this->assertEquals(setting('test_array'), ['hans' => 'dampf']);
+        $this->assertEquals($actual, $array);
 
         $rules = Setting::getValidationRules();
         $validator = \Validator::make(['test_array' => setting('test_array')], $rules);

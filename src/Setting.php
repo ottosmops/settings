@@ -29,6 +29,11 @@ class Setting extends Model
         'default' => 'array'
     ];
 
+    protected function asJson($value)
+    {
+        return json_encode($value, JSON_UNESCAPED_UNICODE);
+    }
+
     public function __construct(array $attributes = [])
     {
         $this->table = config('settings.table', 'settings');
@@ -187,12 +192,6 @@ class Setting extends Model
     {
         return Cache::rememberForever('settings.all', function () {
             return $settings = self::all()->keyBy('key')->toArray();
-
-            foreach ($settings as $setting) {
-                $array[$setting->key] = $setting->value;
-            }
-
-            return $array;
         });
     }
 
