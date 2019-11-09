@@ -209,4 +209,20 @@ class SettingsTest extends TestCase
         Setting::setValue('test', 333);
         $this->assertEquals('string', setting('test'));
     }
+
+     /** @test */
+    public function test_get_value_as_string()
+    {
+        Setting::create(['key' => 'integer', 'type' => 'integer']);
+        Setting::setValue('integer', 333);
+        $this->assertIsString(settingAsString('integer'));
+
+        Setting::create(['key' => 'array', 'type' => 'array']);
+        Setting::setValue('array', ['hübertus', 'antonius']);
+        $this->assertIsString(settingAsString('array'));
+
+        Setting::create(['key' => 'bool', 'type' => 'bool']);
+        Setting::setValue('bool', true);
+        $this->assertIsString(settingAsString('bool'));
+    }
 }

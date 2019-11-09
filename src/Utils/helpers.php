@@ -8,3 +8,10 @@ if (! function_exists('setting')) {
         return Setting::getValue($key, $default);
     }
 }
+
+if (! function_exists('settingAsString')) {
+    function settingAsString($key, $default = null)
+    {
+        return Setting::getValueAsString($key, $default);
+    }
+}

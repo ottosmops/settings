@@ -117,6 +117,36 @@ class Setting extends Model
         return $default;
     }
 
+    public static function getValueAsString(string $key, $default = null)
+    {
+        if (!self::has($key)) {
+            throw new NoKeyIsFound();
+        }
+
+        if (self::hasValue($key)) {
+            $value = \Ottosmops\Settings\Setting::allSettings()[$key]['value'];
+
+            $type = gettype($value);
+
+            switch ($type) {
+                case 'array':
+                case 'object':
+                    return json_encode($value, JSON_UNESCAPED_UNICODE);
+                case 'integer':
+                    return (string) $value;
+                case 'boolean':
+                    if ($value === false) {
+                        return "false";
+                    }
+                    return "true";
+                default:
+                    return (string) trim($value, '"');
+            }
+        }
+
+        return $default;
+    }
+
     /**
     * Check if setting exists
     *
