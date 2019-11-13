@@ -225,4 +225,13 @@ class SettingsTest extends TestCase
         Setting::setValue('bool', true);
         $this->assertIsString(settingAsString('bool'));
     }
+
+    /** @test */
+    public function test_regex()
+    {
+        $regex = '#\d{3}#';
+        Setting::create(['key' => 'regex', 'type' => 'string']);
+        Setting::setValue('regex', $regex);
+        $this->assertEquals($regex, setting('regex'));
+    }
 }
