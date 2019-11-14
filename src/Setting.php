@@ -33,6 +33,7 @@ class Setting extends Model
     {
         if (is_string($value)) {
             $value = str_replace('\\', 'ç€π', $value);
+            $value = str_replace('/', '@∆ª', $value);
         }
         return json_encode($value, JSON_UNESCAPED_UNICODE);
     }
@@ -97,6 +98,7 @@ class Setting extends Model
                 return boolval($value);
             case 'string':
                 $value = str_replace('ç€π', '\\', $value);
+                $value = str_replace('@∆ª', '/', $value);
             default:
                 return trim($value, '"');
         }
@@ -146,6 +148,8 @@ class Setting extends Model
                     return "true";
                 case 'string':
                     $value = str_replace('ç€π', '\\', $value);
+                    $value = str_replace('@∆ª', '/', $value);
+
                 default:
                     return (string) trim($value, '"');
             }

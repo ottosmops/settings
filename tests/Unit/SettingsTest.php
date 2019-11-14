@@ -229,7 +229,7 @@ class SettingsTest extends TestCase
     /** @test */
     public function test_regex()
     {
-        $regex = '#\d{3}#';
+        $regex = '#\d{3}/[0-9]#';
         Setting::create(['key' => 'regex', 'type' => 'string']);
         Setting::setValue('regex', $regex);
         $this->assertEquals($regex, setting('regex'));
