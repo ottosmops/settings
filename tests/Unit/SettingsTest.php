@@ -54,7 +54,7 @@ class SettingsTest extends TestCase
     /** @test */
     public function test_set_setting_boolean()
     {
-        Setting::create(['key' => 'test_boolean', 'value' => false, 'type' => 'boolean', 'rules' => 'nullable|bool']);
+        Setting::create(['key' => 'test_boolean', 'value' => false, 'type' => 'bool', 'rules' => 'nullable|bool']);
         $actual = setting('test_boolean');
         $this->assertIsBool($actual);
         $this->assertFalse($actual);
@@ -67,6 +67,11 @@ class SettingsTest extends TestCase
         $actual = setting('test_boolean2');
         $this->assertIsBool($actual);
         $this->assertTrue($actual);
+
+        Setting::setValue('test_boolean2', false);
+        $this->assertFalse(setting('test_boolean2'));
+        Setting::setValue('test_boolean2', true);
+        $this->assertTrue(setting('test_boolean2'));
     }
 
     /** @test */
@@ -85,7 +90,7 @@ class SettingsTest extends TestCase
     public function test_set_and_get_setting_array()
     {
         $array = ['hans' => 'dampf', 'in' => 'allen', 'gassen'];
-        Setting::create(['key' => 'test_array', 'type' => 'array', 'rules' => 'array']);
+        Setting::create(['key' => 'test_array', 'type' => 'arr', 'rules' => 'array']);
         Setting::setValue('test_array', $array);
         $actual = setting('test_array');
         $this->assertIsArray($actual);
@@ -195,7 +200,7 @@ class SettingsTest extends TestCase
     /** @test */
     public function test_set_value_validation()
     {
-        Setting::create(['key' => 'test', 'type' => 'integer', 'rules' => 'nullable|integer']);
+        Setting::create(['key' => 'test', 'type' => 'int', 'rules' => 'nullable|integer']);
         $this->expectException(\Illuminate\Validation\ValidationException::class);
         Setting::setValue('test', 'string');
     }
@@ -233,5 +238,14 @@ class SettingsTest extends TestCase
         Setting::create(['key' => 'regex', 'type' => 'string']);
         Setting::setValue('regex', $regex);
         $this->assertEquals($regex, setting('regex'));
+    }
+
+    /** @test */
+    public function test_value_mutator()
+    {
+        $this->expectException(\UnexpectedValueException::class);
+        $regex = '#\d{3}/[0-9]#';
+        Setting::create(['key' => 'regex', 'type' => 'bla']);
+        Setting::setValue('regex', $regex);
     }
 }

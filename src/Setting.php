@@ -38,6 +38,29 @@ class Setting extends Model
         return json_encode($value, JSON_UNESCAPED_UNICODE);
     }
 
+    public function setTypeAttribute($value)
+    {
+        switch ($value) {
+            case 'arr':
+            case 'array':
+                $this->attributes['type'] = 'array';
+                break;
+            case 'int':
+            case 'integer':
+                $this->attributes['type'] = 'integer';
+                break;
+            case 'bool':
+            case 'boolean':
+                $this->attributes['type'] = 'boolean';
+                break;
+            case 'string':
+                $this->attributes['type'] = 'string';
+                break;
+            default:
+                throw new \UnexpectedValueException($value);
+        }
+    }
+
     public function __construct(array $attributes = [])
     {
         $this->table = config('settings.table', 'settings');
@@ -149,7 +172,6 @@ class Setting extends Model
                 case 'string':
                     $value = str_replace('ç€π', '\\', $value);
                     $value = str_replace('@∆ª', '/', $value);
-
                 default:
                     return (string) trim($value, '"');
             }
@@ -198,6 +220,11 @@ class Setting extends Model
         }
 
         $setting = self::find($key);
+
+        if ($setting->type === 'boolean' && is_string($value)) {
+            $value = ($value === 'false') ? false : $value;
+            $value = ($value === 'true')  ? true  : $value;
+        }
 
         if ($validate && !$setting->validateNewValue($value)) {
             throw new ValidationException(null);
