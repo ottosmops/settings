@@ -127,6 +127,32 @@ class Setting extends Model
         }
     }
 
+    public function getValueAsStringAttribute()
+    {
+        if ($this->value === null) {
+            return '';
+        }
+
+        $type = $this->type ?: gettype($this->value);
+        switch ($type) {
+            case 'array':
+            case 'object':
+                return json_encode($this->value, JSON_UNESCAPED_UNICODE);
+            case 'integer':
+                return (string) $this->value;
+            case 'boolean':
+                if ($this->value === false) {
+                    return "false";
+                }
+                return "true";
+            case 'string':
+                $this->value = str_replace('ç€π', '\\', $this->value);
+                $this->value = str_replace('@∆ª', '/', $this->value);
+            default:
+                return (string) trim($this->value, '"');
+        }
+    }
+
     /**
      * Get a type casted setting value
      *
@@ -153,31 +179,9 @@ class Setting extends Model
             throw new NoKeyIsFound();
         }
 
-        if (self::hasValue($key)) {
-            $value = \Ottosmops\Settings\Setting::allSettings()[$key]['value'];
+        $setting = static::where('key', $key)->first();
 
-            $type = gettype($value);
-
-            switch ($type) {
-                case 'array':
-                case 'object':
-                    return json_encode($value, JSON_UNESCAPED_UNICODE);
-                case 'integer':
-                    return (string) $value;
-                case 'boolean':
-                    if ($value === false) {
-                        return "false";
-                    }
-                    return "true";
-                case 'string':
-                    $value = str_replace('ç€π', '\\', $value);
-                    $value = str_replace('@∆ª', '/', $value);
-                default:
-                    return (string) trim($value, '"');
-            }
-        }
-
-        return $default;
+        return $setting->valueAsString ?: $default;
     }
 
     /**
