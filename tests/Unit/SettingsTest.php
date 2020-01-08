@@ -248,4 +248,15 @@ class SettingsTest extends TestCase
         Setting::create(['key' => 'regex', 'type' => 'bla']);
         Setting::setValue('regex', $regex);
     }
+
+    /** @test */
+    public function test_string_with_linebreak()
+    {
+        Setting::create(['key' => 'linebreak', 'type' => 'string']);
+        $value = 'My
+            Linebreak';
+        Setting::setValue('linebreak', $value);
+        $expected = $value;
+        $this->assertEquals($expected, setting('linebreak'));
+    }
 }

@@ -31,10 +31,6 @@ class Setting extends Model
 
     protected function asJson($value)
     {
-        if (is_string($value)) {
-            $value = str_replace('\\', 'ç€π', $value);
-            $value = str_replace('/', '@∆ª', $value);
-        }
         return json_encode($value, JSON_UNESCAPED_UNICODE);
     }
 
@@ -120,8 +116,7 @@ class Setting extends Model
                 }
                 return boolval($value);
             case 'string':
-                $value = str_replace('ç€π', '\\', $value);
-                $value = str_replace('@∆ª', '/', $value);
+                $value = json_decode($value);
             default:
                 return trim($value, '"');
         }
@@ -146,8 +141,7 @@ class Setting extends Model
                 }
                 return "true";
             case 'string':
-                $this->value = str_replace('ç€π', '\\', $this->value);
-                $this->value = str_replace('@∆ª', '/', $this->value);
+                $value = json_decode($value);
             default:
                 return (string) trim($this->value, '"');
         }
