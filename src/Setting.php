@@ -141,7 +141,7 @@ class Setting extends Model
                 }
                 return "true";
             case 'string':
-                $value = json_decode($value);
+                $this->value = json_decode($this->value);
             default:
                 return (string) trim($this->value, '"');
         }
