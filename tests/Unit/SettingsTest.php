@@ -259,4 +259,15 @@ class SettingsTest extends TestCase
         $expected = $value;
         $this->assertEquals($expected, setting('linebreak'));
     }
+
+    /** @test */
+    public function test_string_with_linebreak_as_string()
+    {
+        Setting::create(['key' => 'linebreak', 'type' => 'string']);
+        $value = 'My
+            Linebreak';
+        Setting::setValue('linebreak', $value);
+        $expected = $value;
+        $this->assertEquals($expected, settingAsString('linebreak'));
+    }
 }
