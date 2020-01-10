@@ -31,6 +31,10 @@ class Setting extends Model
 
     protected function asJson($value)
     {
+        if (is_string($value)) {
+            $value = str_replace('\\', 'ç€π', $value);
+            $value = str_replace('/', '@∆ª', $value);
+        }
         return json_encode($value, JSON_UNESCAPED_UNICODE);
     }
 
@@ -48,6 +52,9 @@ class Setting extends Model
             case 'bool':
             case 'boolean':
                 $this->attributes['type'] = 'boolean';
+                break;
+            case 'regex':
+                $this->attributes['type'] = 'regex';
                 break;
             case 'string':
                 $this->attributes['type'] = 'string';
@@ -115,8 +122,12 @@ class Setting extends Model
                     return false;
                 }
                 return boolval($value);
+            case 'regex':
+                $value = str_replace('ç€π', '\\', $value);
+                $value = str_replace('@∆ª', '/', $value);
+                return trim($value, '"');
             case 'string':
-                $value = json_decode($value);
+                $value = json_decode($value, true);
             default:
                 return trim($value, '"');
         }
@@ -129,21 +140,25 @@ class Setting extends Model
         }
 
         $type = $this->type ?: gettype($this->value);
+        $value = $this->value;
         switch ($type) {
             case 'array':
             case 'object':
-                return json_encode($this->value, JSON_UNESCAPED_UNICODE);
+                return json_encode($value, JSON_UNESCAPED_UNICODE);
             case 'integer':
-                return (string) $this->value;
+                return (string) $value;
             case 'boolean':
-                if ($this->value === false) {
+                if ($value === false) {
                     return "false";
                 }
                 return "true";
+            case 'regex':
+                $value = str_replace('ç€π', '\\', $value);
+                $value = str_replace('@∆ª', '/', $value);
             case 'string':
-                return $this->value;
+                $value =  trim($value, '"');
             default:
-                return (string) trim($this->value, '"');
+                return (string) $value;
         }
     }
 
@@ -268,6 +283,10 @@ class Setting extends Model
      */
     public function validateNewValue($value) : bool
     {
+        if ($this->type == 'regex') {
+            $validator = Validator::make([$this->key => $value], [$this->key => 'string']);
+            return !$validator->fails();
+        }
         $validator = Validator::make([$this->key => $value], self::getValidationRules());
         return !$validator->fails();
     }
