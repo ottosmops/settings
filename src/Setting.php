@@ -31,7 +31,7 @@ class Setting extends Model
 
     protected function asJson($value)
     {
-        if (is_string($value)) {
+        if (is_string($value) && $this->type == 'regex') {
             $value = str_replace('\\', 'ç€π', $value);
             $value = str_replace('/', '@∆ª', $value);
         }
