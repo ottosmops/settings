@@ -49,6 +49,11 @@ class SettingsTest extends TestCase
         $rules = Setting::getValidationRules();
         $validator = \Validator::make(['test_integer' => setting('test_integer')], $rules);
         $this->assertFalse($validator->fails());
+
+        Setting::setValue('test_integer', 345);
+        $actual = setting('test_integer');
+        $this->assertIsInt($actual);
+        $this->assertEquals(345, $actual);
     }
 
     /** @test */

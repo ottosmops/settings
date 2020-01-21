@@ -238,6 +238,9 @@ class Setting extends Model
             $value = ($value === 'false') ? false : $value;
             $value = ($value === 'true')  ? true  : $value;
         }
+        if ($setting->type === 'integer' && is_string($value) && ctype_digit($value)) {
+            $value = (int) $value;
+        }
 
         if ($validate && !$setting->validateNewValue($value)) {
             throw new ValidationException(null);
@@ -283,7 +286,7 @@ class Setting extends Model
      */
     public function validateNewValue($value) : bool
     {
-        if ($this->type == 'regex') {
+        if ($this->type === 'regex') {
             $validator = Validator::make([$this->key => $value], [$this->key => 'string']);
             return !$validator->fails();
         }
