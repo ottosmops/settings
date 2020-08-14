@@ -226,6 +226,7 @@ class SettingsTest extends TestCase
         Setting::create(['key' => 'integer', 'type' => 'integer']);
         Setting::setValue('integer', 333);
         $this->assertIsString(settingAsString('integer'));
+        $this->assertTrue("333" === settingAsString('integer'));
 
         Setting::create(['key' => 'array', 'type' => 'array']);
         Setting::setValue('array', ['hübertus', 'antonius']);

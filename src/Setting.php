@@ -23,6 +23,8 @@ class Setting extends Model
 
     protected $table;
 
+    static $all_settings;
+
     protected $casts = [
         'editable' => 'boolean',
         'value' => 'array',
@@ -274,9 +276,13 @@ class Setting extends Model
      */
     public static function allSettings() : array
     {
-        return Cache::rememberForever('settings.all', function () {
-            return $settings = self::all()->keyBy('key')->toArray();
-        });
+        if (! static::$all_settings) {
+            static::$all_settings = Cache::rememberForever('settings.all', function () {
+                return self::all()->keyBy('key')->toArray();
+            });
+        }
+
+        return static::$all_settings;
     }
 
     /**
@@ -291,6 +297,7 @@ class Setting extends Model
             return !$validator->fails();
         }
         $validator = Validator::make([$this->key => $value], self::getValidationRules());
+
         return !$validator->fails();
     }
 
@@ -308,7 +315,6 @@ class Setting extends Model
                             ->toArray();
             });
         }
-
 
         return Cache::rememberForever('settings.rules', function () {
             return Setting::select(\DB::raw("printf('%s|%s', rules, type) as rules, `key`"))
@@ -337,12 +343,15 @@ class Setting extends Model
 
         static::deleted(function () {
             self::flushCache();
+            static::$all_settings = [];
         });
         static::updated(function () {
             self::flushCache();
+            static::$all_settings = [];
         });
         static::created(function () {
             self::flushCache();
+            static::$all_settings = [];
         });
     }
 }
