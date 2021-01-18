@@ -9,7 +9,6 @@ class SettingsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
     public function test_set_setting_string()
     {
         Setting::create(['key' =>'test_string', 'value' => 'value', 'type' => 'string', 'rules' => 'nullable|string']);
@@ -26,7 +25,6 @@ class SettingsTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    /** @test */
     public function test_set_setting_string2()
     {
         $setting = Setting::create(['key' => 'test_string', 'value' => 'value', 'type' => 'string', 'rules' => 'nullable|string']);
@@ -38,7 +36,6 @@ class SettingsTest extends TestCase
         $this->assertEquals('value2', $actual);
     }
 
-    /** @test */
     public function test_set_setting_integer()
     {
         Setting::create(['key' => 'test_integer', 'value' => 344, 'type' => 'integer', 'rules' => 'nullable|integer']);
@@ -56,7 +53,6 @@ class SettingsTest extends TestCase
         $this->assertEquals(345, $actual);
     }
 
-    /** @test */
     public function test_set_setting_boolean()
     {
         Setting::create(['key' => 'test_boolean', 'value' => false, 'type' => 'bool', 'rules' => 'nullable|bool']);
@@ -79,7 +75,6 @@ class SettingsTest extends TestCase
         $this->assertTrue(setting('test_boolean2'));
     }
 
-    /** @test */
     public function test_has_value()
     {
         Setting::create(['key' => 'false', 'value' => false, 'type' => 'boolean', 'rules' => 'nullable|bool']);
@@ -91,7 +86,6 @@ class SettingsTest extends TestCase
         $this->assertFalse(Setting::hasValue('no_value'));
     }
 
-    /** @test */
     public function test_set_and_get_setting_array()
     {
         $array = ['hans' => 'dampf', 'in' => 'allen', 'gassen'];
@@ -106,7 +100,6 @@ class SettingsTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    /** @test */
     public function test_is_editable()
     {
         $value = 'hans';
@@ -121,7 +114,6 @@ class SettingsTest extends TestCase
         $this->assertTrue(Setting::isEditable('test'));
     }
 
-    /** @test */
     public function test_default()
     {
         $value = 'hans';
@@ -134,7 +126,6 @@ class SettingsTest extends TestCase
         $this->assertEquals('hi', setting('test2', 'hi'));
     }
 
-    /** @test */
     public function test_exception_no_key_is_found_get_value()
     {
         Setting::create(['key' => 'test', 'type' => 'string', 'rules' => 'nullable|string']);
@@ -142,7 +133,6 @@ class SettingsTest extends TestCase
         Setting::getValue('test2');
     }
 
-    /** @test */
     public function test_exception_no_key_is_found_set_value()
     {
         $setting = Setting::create(['key' => 'test', 'type' => 'string', 'rules' => 'nullable|string']);
@@ -150,7 +140,6 @@ class SettingsTest extends TestCase
         setting('test2');
     }
 
-    /** @test */
     public function test_remove()
     {
         Setting::create(['key' => 'test1', 'type' => 'string', 'rules' => 'nullable|string']);
@@ -163,7 +152,6 @@ class SettingsTest extends TestCase
         $this->assertEquals(2, $actual);
     }
 
-    /** @test */
     public function test_remove_no_key()
     {
         Setting::create(['key' => 'test1', 'type' => 'string', 'rules' => 'nullable|string']);
@@ -173,14 +161,12 @@ class SettingsTest extends TestCase
         Setting::remove('test5');
     }
 
-    /** @test */
     public function test_editable_is_boolean()
     {
         Setting::create(['key' => 'test1', 'type' => 'string', 'rules' => 'nullable|bool', 'editable' => 1]);
         $this->assertIsBool(Setting::find('test1')->editable);
     }
 
-    /** test */
     public function test_validate_new_value()
     {
         $setting = Setting::create(['key' => 'string', 'type' => 'string', 'rules' => 'nullable|string']);
@@ -192,7 +178,6 @@ class SettingsTest extends TestCase
         $this->assertEquals('neuer string value', Setting::getValue('string'));
     }
 
-    /** test */
     public function test_bool_value_with_no_rules()
     {
         $setting = Setting::create(['key' => 'true', 'type' => 'boolean']);
@@ -202,7 +187,6 @@ class SettingsTest extends TestCase
         $this->assertIsBool(Setting::getValue('true'));
     }
 
-    /** @test */
     public function test_set_value_validation()
     {
         Setting::create(['key' => 'test', 'type' => 'int', 'rules' => 'nullable|integer']);
@@ -210,7 +194,6 @@ class SettingsTest extends TestCase
         Setting::setValue('test', 'string');
     }
 
-    /** @test */
     public function test_create_a_setting_without_rules()
     {
         Setting::create(['key' => 'test', 'type' => 'integer']);
@@ -220,7 +203,6 @@ class SettingsTest extends TestCase
         $this->assertEquals('string', setting('test'));
     }
 
-     /** @test */
     public function test_get_value_as_string()
     {
         Setting::create(['key' => 'integer', 'type' => 'integer']);
@@ -237,7 +219,6 @@ class SettingsTest extends TestCase
         $this->assertIsString(settingAsString('bool'));
     }
 
-    /** @test */
     public function test_regex()
     {
         $regex = '#\d{3}/[0-9]#';
@@ -246,7 +227,6 @@ class SettingsTest extends TestCase
         $this->assertEquals($regex, setting('regex'));
     }
 
-    /** @test */
     public function test_value_mutator()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -255,7 +235,6 @@ class SettingsTest extends TestCase
         Setting::setValue('regex', $regex);
     }
 
-    /** @test */
     public function test_string_with_linebreak()
     {
         Setting::create(['key' => 'linebreak', 'type' => 'string']);
@@ -266,7 +245,6 @@ class SettingsTest extends TestCase
         $this->assertEquals($expected, setting('linebreak'));
     }
 
-    /** @test */
     public function test_string_with_linebreak_as_string()
     {
         Setting::create(['key' => 'linebreak', 'type' => 'string']);
