@@ -19,7 +19,7 @@
     "license": "MIT",
     "require": {
         "php": ">=7.4",
-        "laravel/framework": "^6.0.26|7.*|8.*"
+        "laravel/framework": "^6.20.26|7.*|8.*"
     },
     "require-dev": {
         "orchestra/testbench": "^3.8 || ^4.0"
