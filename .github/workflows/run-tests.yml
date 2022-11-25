@@ -29,11 +29,11 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v2
 
-        - name: Copy .env
-          run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-
         - name: Install dependencies
           run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+
+        - name: Create Storage
+          run: mkdir bootstrap/cache
 
         - name: Directory Permissions
           run: chmod -R 777 storage bootstrap/cache
@@ -44,7 +44,4 @@ jobs:
             touch database/database.sqlite
 
         - name: Execute tests (Unit and Feature tests) via PHPUnit
-          env:
-            DB_CONNECTION: sqlite
-            DB_DATABASE: database/database.sqlite
           run: vendor/bin/phpunit
