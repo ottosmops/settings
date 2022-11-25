@@ -18,11 +18,11 @@
     "homepage": "https://github.com/ottosmops/settings",
     "license": "MIT",
     "require": {
-        "php": ">=7.4",
-        "laravel/framework": "^6.20.26|7.*|8.*"
+        "php": ">=8.0",
+        "laravel/framework": "^8|^9"
     },
     "require-dev": {
-        "orchestra/testbench": "^3.8 || ^4.0 || ^6.0"
+        "orchestra/testbench": "^7"
     },
      "autoload": {
         "psr-4": {

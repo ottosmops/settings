@@ -244,8 +244,8 @@ class Setting extends Model
             $value = (int) $value;
         }
 
-        if ($validate && !$setting->validateNewValue($value)) {
-            throw new ValidationException(null);
+        if ($validate) {
+            $setting->validateNewValue($value, true);
         }
 
         $setting->value = $value;
@@ -290,13 +290,17 @@ class Setting extends Model
      * @param  mixed $value
      * @return bool
      */
-    public function validateNewValue($value) : bool
+    public function validateNewValue($value, $throwValidationException = false) : bool
     {
         if ($this->type === 'regex') {
             $validator = Validator::make([$this->key => $value], [$this->key => 'string']);
             return !$validator->fails();
         }
         $validator = Validator::make([$this->key => $value], self::getValidationRules());
+
+        if ($validator->fails() && $throwValidationException) {
+            throw new ValidationException($validator);
+        }
 
         return !$validator->fails();
     }
