@@ -33,7 +33,7 @@ jobs:
           run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
 
         - name: Create Storage
-          run: mkdir srorage; bootstrap; mkdir bootstrap/cache
+          run: mkdir storage; mkdir bootstrap; mkdir bootstrap/cache
 
         - name: Directory Permissions
           run: chmod -R 777 storage bootstrap/cache
