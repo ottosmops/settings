@@ -19,17 +19,21 @@ jobs:
         name: P${{ matrix.php }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
 
         steps:
-        - uses: shivammathur/setup-php@v2
+        - name: Setup PHP
+          uses: shivammathur/setup-php@v2
+          with:
+              php-version: ${{ matrix.php }}
+              extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+              coverage: non
 
-        - uses: actions/checkout@v3
+        - name: Checkout code
+          uses: actions/checkout@v2
+
         - name: Copy .env
           run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-        - name: Install Dependencies
-          run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-
-        - name: Generate key
-          run: php artisan key:generate
+        - name: Install dependencies
+          run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
 
         - name: Directory Permissions
           run: chmod -R 777 storage bootstrap/cache
