@@ -2,8 +2,8 @@
 
 namespace Ottosmops\Settings;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -174,7 +174,7 @@ class Setting extends Model
     public static function getValue(string $key, $default = null)
     {
         if (!self::has($key)) {
-            throw new NoKeyIsFound($key);
+            throw new NoKeyIsFound();
         }
 
         if (self::hasValue($key)) {
@@ -187,7 +187,7 @@ class Setting extends Model
     public static function getValueAsString(string $key, $default = null)
     {
         if (!self::has($key)) {
-            throw new NoKeyIsFound($key);
+            throw new NoKeyIsFound();
         }
 
         $setting = static::where('key', $key)->first();
@@ -231,7 +231,7 @@ class Setting extends Model
     public static function setValue(string $key, $value = null, $validate = true)
     {
         if (!self::has($key)) {
-            throw new NoKeyIsFound($key);
+            throw new NoKeyIsFound();
         }
 
         $setting = self::find($key);
@@ -266,7 +266,7 @@ class Setting extends Model
             return self::find($key)->delete();
         }
 
-        throw new NoKeyIsFound($key);
+        throw new NoKeyIsFound();
     }
 
     /**
