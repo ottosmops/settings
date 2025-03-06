@@ -2,8 +2,8 @@
 
 namespace Ottosmops\Settings\Tests;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Ottosmops\Settings\Setting;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SettingsTest extends TestCase
 {
