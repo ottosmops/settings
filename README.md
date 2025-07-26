@@ -1,9 +1,10 @@
 # Laravel Settings Package
 
 [![Software License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
-[![Code Coverage](https://scrutinizer-ci.com/g/ottosmops/settings/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/ottosmops/settings/?branch=master)
-[![Tests](https://github.com/ottosmops/settings/actions/workflows/run-tests.yml/badge.svg)](https://github.com/ottosmops/settings/actions/workflows/run-tests.yml/badge.svg)
+[![Tests](https://github.com/ottosmops/settings/actions/workflows/run-tests.yml/badge.svg)](https://github.com/ottosmops/settings/actions/workflows/run-tests.yml)
+[![Codecov](https://codecov.io/gh/ottosmops/settings/branch/master/graph/badge.svg)](https://codecov.io/gh/ottosmops/settings)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
+[![Latest Version](https://img.shields.io/packagist/v/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
 
 A robust and feature-rich settings package for Laravel applications with caching, validation, and type casting.
 
