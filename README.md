@@ -1,8 +1,9 @@
 # Laravel Settings Package
 
 [![Software License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
-[![Tests](https://github.com/ottosmops/settings/actions/workflows/run-tests.yml/badge.svg)](https://github.com/ottosmops/settings/actions/workflows/run-tests.yml)
-[![Codecov](https://codecov.io/gh/ottosmops/settings/branch/master/graph/badge.svg)](https://codecov.io/gh/ottosmops/settings)
+[![Tests](https://github.com/ottosmops/settings/actions/workflows/ci.yml/badge.svg)](https://github.com/ottosmops/settings/actions/workflows/ci.yml)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue.svg?style=flat-square)](https://php.net/)
+[![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D9.0-red.svg?style=flat-square)](https://laravel.com/)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
 [![Latest Version](https://img.shields.io/packagist/v/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
 
