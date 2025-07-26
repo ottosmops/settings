@@ -2,8 +2,8 @@
 
 [![Software License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
 [![Tests](https://github.com/ottosmops/settings/actions/workflows/ci.yml/badge.svg)](https://github.com/ottosmops/settings/actions/workflows/ci.yml)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue.svg?style=flat-square)](https://php.net/)
-[![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D9.0-red.svg?style=flat-square)](https://laravel.com/)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.2-blue.svg?style=flat-square)](https://php.net/)
+[![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10.0-red.svg?style=flat-square)](https://laravel.com/)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
 [![Latest Version](https://img.shields.io/packagist/v/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
 
@@ -11,8 +11,8 @@ A robust and feature-rich settings package for Laravel applications with caching
 
 ## Requirements
 
-- PHP >= 8.1
-- Laravel >= 9.0
+- PHP >= 8.2
+- Laravel >= 10.0
 
 ## Installation
 
@@ -85,8 +85,8 @@ php artisan cache:clear
 
 ### Breaking Changes in 2.0
 
-- **PHP 8.1+ required** (was PHP 7.4+)
-- **Laravel 9+ required** (was Laravel 6+)
+- **PHP 8.2+ required** (was PHP 7.4+)
+- **Laravel 10+ required** (was Laravel 6+)
 - Enhanced type safety may affect dynamic value access
 - New migration adds database indexes (performance improvement)  
 - Cache keys have been updated (automatic cache invalidation)
