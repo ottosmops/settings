@@ -9,7 +9,10 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function setUp() : void
     {
         parent::setUp();
+        
+        // Load migrations and run them
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->artisan('migrate')->run();
     }
 
     protected function getPackageProviders($app)
