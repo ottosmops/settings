@@ -2,6 +2,7 @@
 
 [![Software License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
 [![Tests](https://github.com/ottosmops/settings/actions/workflows/ci.yml/badge.svg)](https://github.com/ottosmops/settings/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](https://github.com/ottosmops/settings/actions/workflows/ci.yml)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.2-blue.svg?style=flat-square)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10.0-red.svg?style=flat-square)](https://laravel.com/)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
