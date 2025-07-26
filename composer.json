@@ -1,30 +1,33 @@
 {
     "name": "ottosmops/settings",
-    "description": "A simple settings package for laravel",
+    "description": "A robust settings package for Laravel with caching, validation, and type casting",
     "type": "library",
     "keywords": [
-        "anton",
-        "ottosmops",
         "laravel",
-        "settings"
+        "settings",
+        "configuration",
+        "cache",
+        "validation",
+        "ottosmops"
     ],
     "authors": [
         {
-            "name": "ak",
+            "name": "Anton Kraenzle",
             "email": "kraenzle@k-r.ch",
-            "homepage": "https://wwwk-r.ch"
+            "homepage": "https://www.k-r.ch"
         }
     ],
     "homepage": "https://github.com/ottosmops/settings",
     "license": "MIT",
     "require": {
-        "php": ">=8.1",
-        "laravel/framework": ">=9"
+        "php": "^8.2",
+        "laravel/framework": "^9.0|^10.0|^11.0|^12.0"
     },
     "require-dev": {
-        "orchestra/testbench": ">=7"
+        "orchestra/testbench": "^7.0|^8.0|^9.0",
+        "phpunit/phpunit": "^9.5|^10.0"
     },
-     "autoload": {
+    "autoload": {
         "psr-4": {
             "Ottosmops\\Settings\\": "src/"
         },
@@ -43,5 +46,14 @@
                 "Ottosmops\\Settings\\SettingsServiceProvider"
             ]
         }
-    }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

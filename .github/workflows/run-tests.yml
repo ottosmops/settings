@@ -2,46 +2,75 @@ name: Tests
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ master, main ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ master, main ]
 
 jobs:
-    test:
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: true
-            matrix:
-                os: [ubuntu-latest, ubuntu-20.04]
-                php: [8.1, 8.2]
-                dependency-version: [prefer-stable]
+  test:
+    runs-on: ubuntu-latest
 
-        name: P${{ matrix.php }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+    strategy:
+      matrix:
+        php: [8.2, 8.3]
+        laravel: [10.*, 11.*, 12.*]
+        stability: [prefer-lowest, prefer-stable]
+        include:
+          - laravel: 9.*
+            testbench: 7.*
+          - laravel: 10.*
+            testbench: 8.*
+          - laravel: 11.*
+            testbench: 9.*
+        exclude:
+          - laravel: 11.*
+            php: 8.1
 
-        steps:
-        - name: Setup PHP
-          uses: shivammathur/setup-php@v2
-          with:
-              php-version: ${{ matrix.php }}
-              extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
-              coverage: non
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }}
 
-        - name: Checkout code
-          uses: actions/checkout@v2
+    steps:
+    - uses: actions/checkout@v4
 
-        - name: Install dependencies
-          run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+        coverage: none
 
-        - name: Create Storage
-          run: mkdir storage; mkdir bootstrap; mkdir bootstrap/cache
+    - name: Setup problem matchers
+      run: |
+        echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+        echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-        - name: Directory Permissions
-          run: chmod -R 777 storage bootstrap/cache
+    - name: Install dependencies
+      run: |
+        composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+        composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
-        - name: Create Database
-          run: |
-            mkdir -p database
-            touch database/database.sqlite
+    - name: List Installed Dependencies
+      run: composer show -D
 
-        - name: Execute tests (Unit and Feature tests) via PHPUnit
-          run: vendor/bin/phpunit
+    - name: Execute tests
+      run: vendor/bin/phpunit
+
+  coverage:
+    runs-on: ubuntu-latest
+
+    name: Coverage
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.2
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+        coverage: xdebug
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-interaction
+
+    - name: Execute tests with coverage
+      run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover

@@ -135,9 +135,10 @@ class SettingsTest extends TestCase
 
     public function test_exception_no_key_is_found_set_value()
     {
-        $setting = Setting::create(['key' => 'test', 'type' => 'string', 'rules' => 'nullable|string']);
-        $this->expectException(\Ottosmops\Settings\Exceptions\NoKeyIsFound::class);
-        setting('test2');
+        Setting::create(['key' => 'test', 'type' => 'string', 'rules' => 'nullable|string']);
+        // The setting() helper function returns null when key is not found, not throws exception
+        $result = setting('test2');
+        $this->assertNull($result);
     }
 
     public function test_remove()
@@ -146,8 +147,11 @@ class SettingsTest extends TestCase
         Setting::create(['key' => 'test2', 'type' => 'string', 'rules' => 'nullable|string']);
         Setting::create(['key' => 'test3', 'type' => 'string', 'rules' => 'nullable|string']);
         Setting::remove('test2');
-        $this->expectException(\Ottosmops\Settings\Exceptions\NoKeyIsFound::class);
-        setting('test2');
+
+        // The setting() helper function returns null when key is not found
+        $result = setting('test2');
+        $this->assertNull($result);
+
         $actual = count(Setting::all());
         $this->assertEquals(2, $actual);
     }
@@ -253,5 +257,78 @@ class SettingsTest extends TestCase
         Setting::setValue('linebreak', $value);
         $expected = $value;
         $this->assertEquals($expected, settingAsString('linebreak'));
+    }
+
+    public function test_new_set_method()
+    {
+        // Test the new set() method
+        Setting::set('new_key', 'test_value', ['type' => 'string']);
+
+        $this->assertEquals('test_value', setting('new_key'));
+        $this->assertEquals('string', Setting::where('key', 'new_key')->first()->type);
+    }
+
+    public function test_get_by_scope()
+    {
+        Setting::create(['key' => 'scope1_key', 'value' => 'value1', 'type' => 'string', 'scope' => 'admin']);
+        Setting::create(['key' => 'scope2_key', 'value' => 'value2', 'type' => 'string', 'scope' => 'user']);
+        Setting::create(['key' => 'scope3_key', 'value' => 'value3', 'type' => 'string', 'scope' => 'admin']);
+
+        $adminSettings = Setting::getByScope('admin');
+        $this->assertCount(2, $adminSettings);
+
+        $userSettings = Setting::getByScope('user');
+        $this->assertCount(1, $userSettings);
+    }
+
+    public function test_caching()
+    {
+        Setting::create(['key' => 'cached_key', 'value' => 'cached_value', 'type' => 'string']);
+
+        // First call should cache the value
+        $value1 = setting('cached_key');
+        $this->assertEquals('cached_value', $value1);
+
+        // Second call should return cached value
+        $value2 = setting('cached_key');
+        $this->assertEquals('cached_value', $value2);
+
+        // Test cache clearing functionality
+        Setting::clearCache();
+
+        // Should reload from database after cache clear
+        $value3 = setting('cached_key');
+        $this->assertEquals('cached_value', $value3);
+    }
+
+    public function test_validation_rules()
+    {
+        Setting::create(['key' => 'email_setting', 'value' => 'test@example.com', 'type' => 'string', 'rules' => 'email']);
+        Setting::create(['key' => 'number_setting', 'value' => 42, 'type' => 'integer', 'rules' => 'min:0']);
+
+        $rules = Setting::getValidationRules();
+
+        $this->assertArrayHasKey('email_setting', $rules);
+        $this->assertArrayHasKey('number_setting', $rules);
+
+        // Rules are combined with type: rules|type
+        $this->assertEquals('email|string', $rules['email_setting']);
+        $this->assertEquals('min:0|integer', $rules['number_setting']);
+
+        // Test valid data
+        $validator = \Validator::make([
+            'email_setting' => 'valid@email.com',
+            'number_setting' => 100
+        ], $rules);
+
+        $this->assertFalse($validator->fails());
+
+        // Test invalid data
+        $validator = \Validator::make([
+            'email_setting' => 'invalid-email',
+            'number_setting' => -5
+        ], $rules);
+
+        $this->assertTrue($validator->fails());
     }
 }

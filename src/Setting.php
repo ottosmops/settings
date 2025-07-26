@@ -90,12 +90,18 @@ class Setting extends Model
     /**
      * Check if setting is editable
      *
-     * @param  string  $value
+     * @param  string  $key
      * @return bool
+     * @throws NoKeyIsFound
      */
     public static function isEditable(string $key) : bool
     {
-        return Setting::where('key', $key)->first()->editable;
+        if (!self::has($key)) {
+            throw new NoKeyIsFound($key);
+        }
+
+        $setting = Setting::where('key', $key)->first();
+        return $setting ? $setting->editable : true;
     }
 
     /**
@@ -170,11 +176,12 @@ class Setting extends Model
      * @param  string $key
      * @param  mixed  $default is returned if value is empty (except boolean false)
      * @return mixed
+     * @throws NoKeyIsFound
      */
     public static function getValue(string $key, $default = null)
     {
         if (!self::has($key)) {
-            throw new NoKeyIsFound();
+            throw new NoKeyIsFound($key);
         }
 
         if (self::hasValue($key)) {
@@ -187,7 +194,7 @@ class Setting extends Model
     public static function getValueAsString(string $key, $default = null)
     {
         if (!self::has($key)) {
-            throw new NoKeyIsFound();
+            throw new NoKeyIsFound($key);
         }
 
         $setting = static::where('key', $key)->first();
@@ -226,12 +233,14 @@ class Setting extends Model
      * Set a new value
      * @param string  $key
      * @param mixed  $value    // string, integer, boolean or array
-     * @param boolean
+     * @param bool $validate
+     * @return bool
+     * @throws NoKeyIsFound
      */
-    public static function setValue(string $key, $value = null, $validate = true)
+    public static function setValue(string $key, $value = null, bool $validate = true): bool
     {
         if (!self::has($key)) {
-            throw new NoKeyIsFound();
+            throw new NoKeyIsFound($key);
         }
 
         $setting = self::find($key);
@@ -257,29 +266,83 @@ class Setting extends Model
     /**
      * Remove a setting
      *
-     * @param $key
+     * @param string $key
      * @return bool
+     * @throws NoKeyIsFound
      */
-    public static function remove(string $key)
+    public static function remove(string $key): bool
     {
         if (self::has($key)) {
             return self::find($key)->delete();
         }
 
-        throw new NoKeyIsFound();
+        throw new NoKeyIsFound($key);
+    }
+
+    /**
+     * Get settings by scope
+     *
+     * @param string $scope
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getByScope(string $scope)
+    {
+        return static::where('scope', $scope)->get();
+    }
+
+    /**
+     * Create or update a setting
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param array $attributes
+     * @return static
+     */
+    public static function set(string $key, $value = null, array $attributes = [])
+    {
+        $setting = static::firstOrNew(['key' => $key]);
+
+        if ($setting->exists && isset($attributes['type']) && $setting->type !== $attributes['type']) {
+            throw new \InvalidArgumentException("Cannot change type of existing setting '{$key}' from '{$setting->type}' to '{$attributes['type']}'");
+        }
+
+        $setting->fill(array_merge([
+            'type' => 'string',
+            'editable' => true,
+        ], $attributes));
+
+        if ($value !== null) {
+            $setting->value = $value;
+        }
+
+        $setting->save();
+
+        return $setting;
     }
 
     /**
      * Get all the settings
      *
-     * @return mixed
+     * @return array
      */
     public static function allSettings() : array
     {
         if (! static::$all_settings) {
-            static::$all_settings = Cache::rememberForever('settings.all', function () {
-                return self::all()->keyBy('key')->toArray();
-            });
+            $cacheKey = config('settings.cache.key_prefix', 'settings') . '.all';
+            $cacheTtl = config('settings.cache.ttl');
+            $cacheEnabled = config('settings.cache.enabled', true);
+
+            if ($cacheEnabled) {
+                static::$all_settings = $cacheTtl
+                    ? Cache::remember($cacheKey, $cacheTtl, function () {
+                        return self::all()->keyBy('key')->toArray();
+                    })
+                    : Cache::rememberForever($cacheKey, function () {
+                        return self::all()->keyBy('key')->toArray();
+                    });
+            } else {
+                static::$all_settings = self::all()->keyBy('key')->toArray();
+            }
         }
 
         return static::$all_settings;
@@ -288,15 +351,24 @@ class Setting extends Model
     /**
      * Helper function: Validate a value against its type and its rules.
      * @param  mixed $value
+     * @param  bool $throwValidationException
      * @return bool
+     * @throws ValidationException
      */
-    public function validateNewValue($value, $throwValidationException = false) : bool
+    public function validateNewValue($value, bool $throwValidationException = false) : bool
     {
         if ($this->type === 'regex') {
             $validator = Validator::make([$this->key => $value], [$this->key => 'string']);
+
+            if ($validator->fails() && $throwValidationException) {
+                throw new ValidationException($validator);
+            }
+
             return !$validator->fails();
         }
-        $validator = Validator::make([$this->key => $value], self::getValidationRules());
+
+        $rules = self::getValidationRules();
+        $validator = Validator::make([$this->key => $value], [$this->key => $rules[$this->key] ?? 'nullable']);
 
         if ($validator->fails() && $throwValidationException) {
             throw new ValidationException($validator);
@@ -312,20 +384,41 @@ class Setting extends Model
      */
     public static function getValidationRules() : array
     {
-        if ('mysql' === \DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
-            return Cache::rememberForever('settings.rules', function () {
-                return Setting::select(\DB::raw('concat_ws("|", rules, type) as rules'))
-                            ->select('key')
-                            ->get()
-                            ->toArray();
-            });
+        $cacheKey = config('settings.cache.key_prefix', 'settings') . '.rules';
+        $cacheTtl = config('settings.cache.ttl');
+        $cacheEnabled = config('settings.cache.enabled', true);
+
+        if (!$cacheEnabled) {
+            return self::buildValidationRules();
         }
 
-        return Cache::rememberForever('settings.rules', function () {
-            return Setting::select(\DB::raw("printf('%s|%s', rules, type) as rules, `key`"))
-                            ->pluck('rules', 'key')
-                            ->toArray();
-        });
+        return $cacheTtl
+            ? Cache::remember($cacheKey, $cacheTtl, function () {
+                return self::buildValidationRules();
+            })
+            : Cache::rememberForever($cacheKey, function () {
+                return self::buildValidationRules();
+            });
+    }
+
+    /**
+     * Build validation rules array
+     *
+     * @return array
+     */
+    private static function buildValidationRules(): array
+    {
+        if ('mysql' === \DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
+            return Setting::select(\DB::raw('concat_ws("|", rules, type) as rules'))
+                        ->select('key')
+                        ->get()
+                        ->pluck('rules', 'key')
+                        ->toArray();
+        }
+
+        return Setting::select(\DB::raw("printf('%s|%s', rules, type) as rules, `key`"))
+                        ->pluck('rules', 'key')
+                        ->toArray();
     }
 
     /**
@@ -333,8 +426,20 @@ class Setting extends Model
      */
     public static function flushCache()
     {
-        Cache::forget('settings.all');
-        Cache::forget('settings.rules');
+        $cachePrefix = config('settings.cache.key_prefix', 'settings');
+        Cache::forget($cachePrefix . '.all');
+        Cache::forget($cachePrefix . '.rules');
+
+        // Also clear the static variable
+        static::$all_settings = null;
+    }
+
+    /**
+     * Alias for flushCache()
+     */
+    public static function clearCache()
+    {
+        return static::flushCache();
     }
 
     /**

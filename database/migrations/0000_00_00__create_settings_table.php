@@ -33,9 +33,14 @@ class CreateSettingsTable extends Migration
             $table->text('value')->nullable();
             $table->string('type'); // string, integer, array, bool
             $table->string('scope')->nullable();
-            $table->tinyInteger('editable')->nullable();
-            $table->string('rules')->nullable();
+            $table->boolean('editable')->default(true);
+            $table->text('rules')->nullable(); // Changed to text for longer validation rules
             $table->text('description')->nullable();
+
+            // Add indexes for better performance
+            $table->index('scope');
+            $table->index('type');
+            $table->index(['scope', 'type']);
         });
     }
 
