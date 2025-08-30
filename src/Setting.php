@@ -357,8 +357,16 @@ class Setting extends Model
      */
     public function validateNewValue($value, bool $throwValidationException = false) : bool
     {
+        $valueString = $this->formatValueForMessage($value);
+        
         if ($this->type === 'regex') {
-            $validator = Validator::make([$this->key => $value], [$this->key => 'string']);
+            $validator = Validator::make(
+                [$this->key => $value], 
+                [$this->key => 'string'],
+                [
+                    $this->key . '.string' => "Setting '{$this->key}' must be a string. Given value: {$valueString} (type: " . gettype($value) . ")"
+                ]
+            );
 
             if ($validator->fails() && $throwValidationException) {
                 throw new ValidationException($validator);
@@ -368,13 +376,74 @@ class Setting extends Model
         }
 
         $rules = self::getValidationRules();
-        $validator = Validator::make([$this->key => $value], [$this->key => $rules[$this->key] ?? 'nullable']);
+        $rule = $rules[$this->key] ?? 'nullable';
+        
+        $validator = Validator::make(
+            [$this->key => $value], 
+            [$this->key => $rule],
+            $this->getCustomValidationMessages($value, $rule)
+        );
 
         if ($validator->fails() && $throwValidationException) {
             throw new ValidationException($validator);
         }
 
         return !$validator->fails();
+    }
+
+    /**
+     * Get custom validation messages for better error reporting
+     *
+     * @param mixed $value
+     * @param string $rule
+     * @return array
+     */
+    private function getCustomValidationMessages($value, string $rule): array
+    {
+        $valueString = $this->formatValueForMessage($value);
+        $typeString = gettype($value);
+        
+        return [
+            $this->key . '.required' => "Setting '{$this->key}' is required but was not provided.",
+            $this->key . '.string' => "Setting '{$this->key}' must be a string. Given value: {$valueString} (type: {$typeString})",
+            $this->key . '.integer' => "Setting '{$this->key}' must be an integer. Given value: {$valueString} (type: {$typeString})",
+            $this->key . '.boolean' => "Setting '{$this->key}' must be a boolean. Given value: {$valueString} (type: {$typeString})",
+            $this->key . '.array' => "Setting '{$this->key}' must be an array. Given value: {$valueString} (type: {$typeString})",
+            $this->key . '.numeric' => "Setting '{$this->key}' must be numeric. Given value: {$valueString} (type: {$typeString})",
+            $this->key . '.email' => "Setting '{$this->key}' must be a valid email address. Given value: {$valueString}",
+            $this->key . '.url' => "Setting '{$this->key}' must be a valid URL. Given value: {$valueString}",
+            $this->key . '.min' => "Setting '{$this->key}' is too small. Given value: {$valueString}",
+            $this->key . '.max' => "Setting '{$this->key}' is too large. Given value: {$valueString}",
+            $this->key . '.in' => "Setting '{$this->key}' has an invalid value. Given value: {$valueString}. Expected one of the allowed values from rule: {$rule}",
+        ];
+    }
+
+    /**
+     * Format value for error messages
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private function formatValueForMessage($value): string
+    {
+        if (is_null($value)) {
+            return 'null';
+        }
+        
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+        
+        if (is_array($value)) {
+            return '[' . implode(', ', array_slice($value, 0, 3)) . (count($value) > 3 ? '...' : '') . ']';
+        }
+        
+        if (is_object($value)) {
+            return 'object(' . get_class($value) . ')';
+        }
+        
+        $stringValue = (string) $value;
+        return strlen($stringValue) > 50 ? substr($stringValue, 0, 47) . '...' : $stringValue;
     }
 
     /**
