@@ -435,7 +435,24 @@ class Setting extends Model
         }
         
         if (is_array($value)) {
-            return '[' . implode(', ', array_slice($value, 0, 3)) . (count($value) > 3 ? '...' : '') . ']';
+            $items = array_slice($value, 0, 3);
+            $formattedItems = [];
+            
+            foreach ($items as $item) {
+                if (is_array($item)) {
+                    $formattedItems[] = '[array]';
+                } elseif (is_object($item)) {
+                    $formattedItems[] = '[object]';
+                } elseif (is_string($item) && strlen($item) > 20) {
+                    $formattedItems[] = '"' . substr($item, 0, 17) . '..."';
+                } elseif (is_string($item)) {
+                    $formattedItems[] = '"' . $item . '"';
+                } else {
+                    $formattedItems[] = (string) $item;
+                }
+            }
+            
+            return '[' . implode(', ', $formattedItems) . (count($value) > 3 ? '...' : '') . ']';
         }
         
         if (is_object($value)) {
