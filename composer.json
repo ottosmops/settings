@@ -10,13 +10,11 @@
         "validation",
         "ottosmops"
     ],
-    "authors": [
-        {
-            "name": "Anton Kraenzle",
-            "email": "kraenzle@k-r.ch",
-            "homepage": "https://www.k-r.ch"
-        }
-    ],
+    "authors": [{
+        "name": "Anton Kraenzle",
+        "email": "kraenzle@k-r.ch",
+        "homepage": "https://www.k-r.ch"
+    }],
     "homepage": "https://github.com/ottosmops/settings",
     "license": "MIT",
     "require": {
@@ -24,8 +22,8 @@
         "laravel/framework": "^10.0|^11.0|^12.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^8.0|^9.0",
-        "phpunit/phpunit": "^10.0"
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.0|^11.0"
     },
     "autoload": {
         "psr-4": {
