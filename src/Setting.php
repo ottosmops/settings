@@ -31,13 +31,13 @@ class Setting extends Model
         'default' => 'array'
     ];
 
-    protected function asJson($value)
+    protected function asJson($value, $flags = 0)
     {
         if (is_string($value) && $this->type == 'regex') {
             $value = str_replace('\\', 'ç€π', $value);
             $value = str_replace('/', '@∆ª', $value);
         }
-        return json_encode($value, JSON_UNESCAPED_UNICODE);
+        return json_encode($value, $flags | JSON_UNESCAPED_UNICODE);
     }
 
     public function setTypeAttribute($value)
@@ -94,7 +94,7 @@ class Setting extends Model
      * @return bool
      * @throws NoKeyIsFound
      */
-    public static function isEditable(string $key) : bool
+    public static function isEditable(string $key): bool
     {
         if (!self::has($key)) {
             throw new NoKeyIsFound($key);
@@ -203,14 +203,14 @@ class Setting extends Model
     }
 
     /**
-    * Check if setting exists
-    *
-    * @param $key
-    * @return bool
-    */
-    public static function has(string $key) : bool
+     * Check if setting exists
+     *
+     * @param $key
+     * @return bool
+     */
+    public static function has(string $key): bool
     {
-        return (boolean) isset(self::allSettings()[$key]);
+        return (bool) isset(self::allSettings()[$key]);
     }
 
     /**
@@ -219,7 +219,7 @@ class Setting extends Model
      * @param  string  $key
      * @return boolean
      */
-    public static function hasValue(string $key) : bool
+    public static function hasValue(string $key): bool
     {
         if (self::has($key) && isset(Setting::allSettings()[$key]['value'])) {
             $value = Setting::allSettings()[$key]['value'];
@@ -325,7 +325,7 @@ class Setting extends Model
      *
      * @return array
      */
-    public static function allSettings() : array
+    public static function allSettings(): array
     {
         if (! static::$all_settings) {
             $cacheKey = config('settings.cache.key_prefix', 'settings') . '.all';
@@ -355,13 +355,13 @@ class Setting extends Model
      * @return bool
      * @throws ValidationException
      */
-    public function validateNewValue($value, bool $throwValidationException = false) : bool
+    public function validateNewValue($value, bool $throwValidationException = false): bool
     {
         $valueString = $this->formatValueForMessage($value);
-        
+
         if ($this->type === 'regex') {
             $validator = Validator::make(
-                [$this->key => $value], 
+                [$this->key => $value],
                 [$this->key => 'string'],
                 [
                     $this->key . '.string' => "Setting '{$this->key}' must be a string. Given value: {$valueString} (type: " . gettype($value) . ")"
@@ -377,9 +377,9 @@ class Setting extends Model
 
         $rules = self::getValidationRules();
         $rule = $rules[$this->key] ?? 'nullable';
-        
+
         $validator = Validator::make(
-            [$this->key => $value], 
+            [$this->key => $value],
             [$this->key => $rule],
             $this->getCustomValidationMessages($value, $rule)
         );
@@ -402,7 +402,7 @@ class Setting extends Model
     {
         $valueString = $this->formatValueForMessage($value);
         $typeString = gettype($value);
-        
+
         return [
             $this->key . '.required' => "Setting '{$this->key}' is required but was not provided.",
             $this->key . '.string' => "Setting '{$this->key}' must be a string. Given value: {$valueString} (type: {$typeString})",
@@ -429,15 +429,15 @@ class Setting extends Model
         if (is_null($value)) {
             return 'null';
         }
-        
+
         if (is_bool($value)) {
             return $value ? 'true' : 'false';
         }
-        
+
         if (is_array($value)) {
             $items = array_slice($value, 0, 3);
             $formattedItems = [];
-            
+
             foreach ($items as $item) {
                 if (is_array($item)) {
                     $formattedItems[] = '[array]';
@@ -451,14 +451,14 @@ class Setting extends Model
                     $formattedItems[] = (string) $item;
                 }
             }
-            
+
             return '[' . implode(', ', $formattedItems) . (count($value) > 3 ? '...' : '') . ']';
         }
-        
+
         if (is_object($value)) {
             return 'object(' . get_class($value) . ')';
         }
-        
+
         $stringValue = (string) $value;
         return strlen($stringValue) > 50 ? substr($stringValue, 0, 47) . '...' : $stringValue;
     }
@@ -468,7 +468,7 @@ class Setting extends Model
      *
      * @return array
      */
-    public static function getValidationRules() : array
+    public static function getValidationRules(): array
     {
         $cacheKey = config('settings.cache.key_prefix', 'settings') . '.rules';
         $cacheTtl = config('settings.cache.ttl');
@@ -496,15 +496,15 @@ class Setting extends Model
     {
         if ('mysql' === \DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
             return Setting::select(\DB::raw('concat_ws("|", rules, type) as rules'))
-                        ->select('key')
-                        ->get()
-                        ->pluck('rules', 'key')
-                        ->toArray();
+                ->select('key')
+                ->get()
+                ->pluck('rules', 'key')
+                ->toArray();
         }
 
         return Setting::select(\DB::raw("printf('%s|%s', rules, type) as rules, `key`"))
-                        ->pluck('rules', 'key')
-                        ->toArray();
+            ->pluck('rules', 'key')
+            ->toArray();
     }
 
     /**
