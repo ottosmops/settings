@@ -110,6 +110,7 @@ class Setting extends Model
      *
      * @param  mixed $value
      * @return mixed
+     * @throws \UnexpectedValueException
      */
     public function getValueAttribute($value)
     {
@@ -120,7 +121,11 @@ class Setting extends Model
         switch ($this->type) {
             case 'arr':
             case 'array':
-                return json_decode($value, true);
+                $decoded = json_decode($value, true);
+                if (!is_array($decoded)) {
+                    throw new \UnexpectedValueException("Expected array for key '{$this->key}', got " . gettype($decoded));
+                }
+                return $decoded;
             case 'int':
             case 'integer':
                 return intval($value);
@@ -131,12 +136,22 @@ class Setting extends Model
                 }
                 return boolval($value);
             case 'regex':
+                if (!is_string($value)) {
+                    throw new \UnexpectedValueException("Expected string for regex key '{$this->key}', got " . gettype($value));
+                }
                 $value = str_replace('ç€π', '\\', $value);
                 $value = str_replace('@∆ª', '/', $value);
                 return trim($value, '"');
             case 'string':
-                $value = json_decode($value, true);
+                $decoded = json_decode($value, true);
+                if (!is_string($decoded) && $decoded !== null) {
+                    throw new \UnexpectedValueException("Expected string for key '{$this->key}', got " . gettype($decoded));
+                }
+                return is_string($decoded) ? trim($decoded, '"') : $decoded;
             default:
+                if (!is_string($value)) {
+                    throw new \UnexpectedValueException("Expected string for key '{$this->key}', got " . gettype($value));
+                }
                 return trim($value, '"');
         }
     }
