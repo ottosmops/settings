@@ -86,6 +86,16 @@ class SettingsTest extends TestCase
         $this->assertFalse(Setting::hasValue('no_value'));
     }
 
+    public function test_falsy_string_values()
+    {
+        Setting::create(['key' => 'zero_string', 'value' => '0', 'type' => 'string']);
+
+        $this->assertTrue(Setting::hasValue('zero_string'));
+        $this->assertSame('0', setting('zero_string'));
+        $this->assertSame('0', settingAsString('zero_string'));
+        $this->assertSame('0', Setting::getValueAsString('zero_string'));
+    }
+
     public function test_set_and_get_setting_array()
     {
         $array = ['hans' => 'dampf', 'in' => 'allen', 'gassen'];
