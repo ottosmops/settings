@@ -214,7 +214,7 @@ class Setting extends Model
 
         $setting = static::where('key', $key)->first();
 
-        return $setting->valueAsString ?: $default;
+        return $setting->valueAsString ?? $default;
     }
 
     /**
@@ -238,7 +238,7 @@ class Setting extends Model
     {
         if (self::has($key) && isset(Setting::allSettings()[$key]['value'])) {
             $value = Setting::allSettings()[$key]['value'];
-            return !empty($value) || $value === false || $value === 0 || $value === '';
+            return $value !== null;
         }
 
         return false;
