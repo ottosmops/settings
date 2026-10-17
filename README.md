@@ -13,7 +13,7 @@ A robust and feature-rich settings package for Laravel applications with caching
 ## Requirements
 
 - PHP >= 8.2
-- Laravel >= 10.0
+- Laravel 12.69+ or 13.30+
 
 ## Installation
 

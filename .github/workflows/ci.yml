@@ -13,18 +13,12 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest]
-        php: [8.2, 8.3]
-        laravel: [10.*, 11.*, 12.*, 13.*]
+        php: [8.2, 8.3, 8.4]
+        laravel: [12.*, 13.*]
         exclude:
           - php: 8.2
             laravel: 13.*
         include:
-          - laravel: 10.*
-            testbench: 8.*
-            carbon: ^2.63
-          - laravel: 11.*
-            testbench: 9.*
-            carbon: ^2.63|^3.0
           - laravel: 12.*
             testbench: 10.*
             carbon: ^3.0
@@ -78,7 +72,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "laravel/framework:^11.0" "orchestra/testbench:^9.0" --no-interaction --no-update
+          composer require "laravel/framework:^13.30" "orchestra/testbench:^11.0" --no-interaction --no-update
           composer update --prefer-stable --prefer-dist --no-interaction
 
       - name: Execute tests with coverage
