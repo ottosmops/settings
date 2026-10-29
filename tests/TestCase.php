@@ -2,6 +2,7 @@
 
 namespace Ottosmops\Settings\Tests;
 
+use Ottosmops\Settings\Setting;
 use Ottosmops\Settings\SettingsServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
@@ -9,6 +10,9 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function setUp() : void
     {
         parent::setUp();
+
+        // Settings loaded by a previous test stay in memory otherwise
+        Setting::forgetLoadedSettings();
         
         // Load migrations and run them
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');

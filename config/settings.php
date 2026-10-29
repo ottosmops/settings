@@ -25,23 +25,4 @@ return [
         'key_prefix' => env('SETTINGS_CACHE_PREFIX', 'settings'),
         'ttl' => env('SETTINGS_CACHE_TTL', null), // null = forever
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Default Settings
-    |--------------------------------------------------------------------------
-    |
-    | Default settings that will be created if they don't exist.
-    | Format: 'key' => ['value' => 'default_value', 'type' => 'string', ...]
-    |
-    */
-    'defaults' => [
-        // Example:
-        // 'app_name' => [
-        //     'value' => 'My Application',
-        //     'type' => 'string',
-        //     'description' => 'Application name',
-        //     'editable' => true,
-        // ],
-    ],
 ];

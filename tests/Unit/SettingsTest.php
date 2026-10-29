@@ -459,4 +459,79 @@ class SettingsTest extends TestCase
         $this->assertSame('integer', $rules['number']);
         $this->assertSame('string', $rules['pattern']);
     }
+
+    public function test_settings_are_reloaded_for_each_job()
+    {
+        Setting::create(['key' => 'worker', 'type' => 'string', 'value' => 'old']);
+        $this->assertSame('old', setting('worker'));
+
+        // Another process changes the value and flushes the shared cache
+        \DB::table('settings')->where('key', 'worker')->update(['value' => json_encode('new')]);
+        \Cache::flush();
+        $this->assertSame('old', setting('worker'));
+
+        event(new \Illuminate\Queue\Events\JobProcessing('sync', \Mockery::mock(\Illuminate\Contracts\Queue\Job::class, ['payload' => []])));
+        $this->assertSame('new', setting('worker'));
+    }
+
+    public function test_settings_are_reloaded_for_each_octane_request()
+    {
+        Setting::create(['key' => 'octane', 'type' => 'string', 'value' => 'old']);
+        $this->assertSame('old', setting('octane'));
+
+        \DB::table('settings')->where('key', 'octane')->update(['value' => json_encode('new')]);
+        \Cache::flush();
+
+        event('Laravel\Octane\Events\RequestReceived');
+        $this->assertSame('new', setting('octane'));
+    }
+
+    public function test_set_value_validates_with_current_rules()
+    {
+        $setting = Setting::create(['key' => 'theme', 'type' => 'string', 'rules' => 'in:light']);
+        $setting->update(['rules' => 'in:light,dark']);
+
+        Setting::setValue('theme', 'dark');
+        $this->assertSame('dark', setting('theme'));
+    }
+
+    public function test_set_command_creates_setting()
+    {
+        $this->artisan('settings:set', ['key' => 'max_users', 'value' => '100', '--type' => 'int', '--rules' => 'min:1'])
+            ->assertExitCode(0);
+
+        $this->assertSame(100, setting('max_users'));
+    }
+
+    public function test_set_command_validates_new_setting()
+    {
+        $this->artisan('settings:set', ['key' => 'max_users', 'value' => '0', '--type' => 'integer', '--rules' => 'min:1'])
+            ->assertExitCode(1);
+
+        $this->assertFalse(Setting::has('max_users'));
+    }
+
+    public function test_set_command_refuses_invalid_boolean_and_integer()
+    {
+        $this->artisan('settings:set', ['key' => 'flag', 'value' => 'foo', '--type' => 'bool'])
+            ->assertExitCode(1);
+        $this->artisan('settings:set', ['key' => 'count', 'value' => 'ten', '--type' => 'integer'])
+            ->assertExitCode(1);
+
+        $this->assertFalse(Setting::has('flag'));
+        $this->assertFalse(Setting::has('count'));
+    }
+
+    public function test_set_command_uses_type_of_existing_setting()
+    {
+        Setting::create(['key' => 'flag', 'type' => 'boolean', 'value' => true]);
+        Setting::create(['key' => 'list', 'type' => 'array', 'value' => ['a']]);
+
+        $this->artisan('settings:set', ['key' => 'flag', 'value' => 'off'])->assertExitCode(0);
+        $this->artisan('settings:set', ['key' => 'list', 'value' => '["b","c"]'])->assertExitCode(0);
+        $this->artisan('settings:set', ['key' => 'flag', 'value' => 'x', '--type' => 'string'])->assertExitCode(1);
+
+        $this->assertFalse(setting('flag'));
+        $this->assertSame(['b', 'c'], setting('list'));
+    }
 }

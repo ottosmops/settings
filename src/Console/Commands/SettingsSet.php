@@ -4,11 +4,10 @@ namespace Ottosmops\Settings\Console\Commands;
 
 use Illuminate\Console\Command;
 use Ottosmops\Settings\Setting;
-use Ottosmops\Settings\Exceptions\NoKeyIsFound;
 
 class SettingsSet extends Command
 {
-    protected $signature = 'settings:set {key} {value} {--type=string} {--scope=} {--rules=} {--description=}';
+    protected $signature = 'settings:set {key} {value} {--type= : Type of a new setting (default: string)} {--scope=} {--rules=} {--description=}';
     protected $description = 'Set a setting value';
 
     public function handle()
@@ -20,24 +19,30 @@ class SettingsSet extends Command
         $rules = $this->option('rules');
         $description = $this->option('description');
 
-        // Convert string values to appropriate types
-        $value = $this->castValue($value, $type);
-
         try {
             // Check if setting exists
             if (Setting::has($key)) {
-                Setting::setValue($key, $value);
+                $existingType = Setting::find($key)->type;
+                if ($type && Setting::normalizeType($type) !== $existingType) {
+                    $this->error("Cannot change type of existing setting '{$key}' from '{$existingType}' to '{$type}'.");
+                    return 1;
+                }
+
+                Setting::setValue($key, $this->castValue($value, $existingType));
                 $this->info("Setting '{$key}' updated successfully.");
             } else {
                 // Create new setting
-                Setting::create([
+                $setting = new Setting([
                     'key' => $key,
-                    'value' => $value,
-                    'type' => $type,
+                    'type' => $type ?: 'string',
                     'scope' => $scope,
                     'rules' => $rules,
                     'description' => $description,
                 ]);
+                $value = $this->castValue($value, $setting->type);
+                $setting->validateNewValue($value, true);
+                $setting->value = $value;
+                $setting->save();
                 $this->info("Setting '{$key}' created successfully.");
             }
         } catch (\Exception $e) {
@@ -52,13 +57,20 @@ class SettingsSet extends Command
     {
         switch ($type) {
             case 'boolean':
-            case 'bool':
-                return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                $cast = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                if ($cast === null) {
+                    throw new \InvalidArgumentException("'{$value}' is not a boolean (use true/false, 1/0, yes/no, on/off).");
+                }
+                return $cast;
             case 'integer':
-            case 'int':
-                return (int) $value;
+                $cast = filter_var($value, FILTER_VALIDATE_INT);
+                if ($cast === false) {
+                    throw new \InvalidArgumentException("'{$value}' is not an integer.");
+                }
+                return $cast;
             case 'array':
-                return json_decode($value, true) ?? [$value];
+                $decoded = json_decode($value, true);
+                return is_array($decoded) ? $decoded : [$value];
             default:
                 return $value;
         }

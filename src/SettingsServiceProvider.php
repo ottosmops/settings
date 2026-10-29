@@ -2,14 +2,14 @@
 
 namespace Ottosmops\Settings;
 
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class SettingsServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/settings.php', 'settings');
-
         $this->publishes([
             __DIR__ . '/../config/settings.php' => config_path('settings.php'),
         ], 'settings-config');
@@ -24,9 +24,18 @@ class SettingsServiceProvider extends ServiceProvider
             __DIR__ . '/../config/settings.php' => config_path('settings.php'),
             __DIR__ . '/../database/migrations/0000_00_00__create_settings_table.php' =>
                 database_path('migrations/'. date('Y_m_d_His', time()) . '_create_settings_table.php'),
-            __DIR__ . '/../database/migrations/0000_00_01__update_settings_table_add_indexes.php' =>
-                database_path('migrations/'. date('Y_m_d_His', time() + 1) . '_update_settings_table_add_indexes.php')
         ], 'settings');
+
+        // Long-running processes keep loaded settings in memory: reload them
+        // for every queued job and every Octane request
+        Event::listen([
+            JobProcessing::class,
+            'Laravel\Octane\Events\RequestReceived',
+            'Laravel\Octane\Events\TaskReceived',
+            'Laravel\Octane\Events\TickReceived',
+        ], function () {
+            Setting::forgetLoadedSettings();
+        });
 
         // Register commands
         if ($this->app->runningInConsole()) {
@@ -41,6 +50,8 @@ class SettingsServiceProvider extends ServiceProvider
 
     public function register()
     {
+        $this->mergeConfigFrom(__DIR__ . '/../config/settings.php', 'settings');
+
         $this->app->singleton('settings', function ($app) {
             return new Setting();
         });

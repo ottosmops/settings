@@ -2,9 +2,8 @@
 
 [![Software License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
 [![Tests](https://github.com/ottosmops/settings/actions/workflows/ci.yml/badge.svg)](https://github.com/ottosmops/settings/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](https://github.com/ottosmops/settings/actions/workflows/ci.yml)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.2-blue.svg?style=flat-square)](https://php.net/)
-[![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10.0-red.svg?style=flat-square)](https://laravel.com/)
+[![Laravel Version](https://img.shields.io/badge/laravel-12.69%2B%20%7C%2013.30%2B-red.svg?style=flat-square)](https://laravel.com/)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
 [![Latest Version](https://img.shields.io/packagist/v/ottosmops/settings.svg?style=flat-square)](https://packagist.org/packages/ottosmops/settings)
 
@@ -79,7 +78,7 @@ php artisan vendor:publish --provider="Ottosmops\Settings\SettingsServiceProvide
 ### 5. Clear cache
 
 ```bash
-php artisan settings:flush-cache
+php artisan settings:cache:flush
 # or
 php artisan cache:clear
 ```
@@ -217,6 +216,8 @@ $themeSettings = Setting::where('scope', 'theme')->get();
 
 The package automatically caches all settings for performance. The cache is cleared when settings are created, updated, or deleted.
 
+Within a process the settings are also kept in memory. Queue workers and Octane reload them before every job or request, so changes made by another process are picked up. In other long-running processes (a custom daemon, a long Artisan command) call `Setting::forgetLoadedSettings()` to reload them.
+
 ### Checking Settings
 
 ```php
@@ -264,6 +265,14 @@ php artisan settings:set max_users 100 --type=integer --rules="required|integer|
 
 # Set array value
 php artisan settings:set features '["feature1", "feature2"]' --type=array
+```
+
+The value is validated against the type and the rules of the setting, also when the setting is created. `--type` applies to new settings; an existing setting keeps its type.
+
+### Flush the cache
+
+```bash
+php artisan settings:cache:flush
 ```
 
 ## Environment Configuration

@@ -5,6 +5,27 @@ All notable changes to `ottosmops/settings` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-10-29
+
+### Added
+- `Setting::forgetLoadedSettings()` reloads the settings in a long-running process without flushing the shared cache
+
+### Fixed
+- Queue workers and Octane kept the settings loaded at startup and missed changes made by other processes; they now reload them before every job, request, task and tick
+- `settings:set` created new settings without validating the value against their type and rules
+- `settings:set` turned an invalid boolean such as `foo` into `false` and an invalid integer into `0`; both are now refused
+- `settings:set` cast the value of an existing setting with `--type` (default `string`) instead of the setting's own type, so an existing array setting could not be set; a conflicting `--type` is now refused
+- `setValue()` validated against the cached rules instead of the rules of the setting itself
+- README: the cache command is `settings:cache:flush`, not `settings:flush-cache`
+
+### Changed
+- The config is merged in `register()` instead of `boot()`
+- The create migration is an anonymous class and no longer collides with an application class `CreateSettingsTable`
+
+### Removed
+- The migration `update_settings_table_add_indexes`, which did nothing; the indexes are part of the create migration
+- The unused `defaults` block in the config and the cast for the nonexistent column `default`
+
 ## [2.3.1] - 2026-10-29
 
 ### Fixed

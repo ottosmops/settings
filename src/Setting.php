@@ -28,7 +28,6 @@ class Setting extends Model
     protected $casts = [
         'editable' => 'boolean',
         'value' => 'array',
-        'default' => 'array'
     ];
 
     protected function asJson($value, $flags = 0)
@@ -393,8 +392,7 @@ class Setting extends Model
             return !$validator->fails();
         }
 
-        $rules = self::getValidationRules();
-        $rule = $rules[$this->key] ?? 'nullable';
+        $rule = self::combineRules($this->rules, $this->type) ?: 'nullable';
 
         $validator = Validator::make(
             [$this->key => $value],
@@ -516,15 +514,37 @@ class Setting extends Model
             ->toBase()
             ->get(['key', 'rules', 'type'])
             ->mapWithKeys(function ($setting) {
-                // A regex setting holds a pattern, validated as a string
-                $type = $setting->type === 'regex' ? 'string' : $setting->type;
-
-                // Rule parts are trimmed: «in:a,b |string» refused «b»
-                $parts = array_map('trim', explode('|', (string) $setting->rules));
-
-                return [$setting->key => implode('|', array_filter([...$parts, $type], fn ($part) => $part !== null && $part !== ''))];
+                return [$setting->key => self::combineRules($setting->rules, $setting->type)];
             })
             ->toArray();
+    }
+
+    /**
+     * Combine the rules of a setting with its type: rules|type
+     *
+     * @param  string|null  $rules
+     * @param  string|null  $type
+     * @return string
+     */
+    private static function combineRules(?string $rules, ?string $type): string
+    {
+        // A regex setting holds a pattern, validated as a string
+        $type = $type === 'regex' ? 'string' : $type;
+
+        // Rule parts are trimmed: «in:a,b |string» refused «b»
+        $parts = array_map('trim', explode('|', (string) $rules));
+
+        return implode('|', array_filter([...$parts, $type], fn ($part) => $part !== null && $part !== ''));
+    }
+
+    /**
+     * Forget the settings loaded in this process, but keep the shared cache.
+     * Long-running processes (queue workers, Octane) call this before each
+     * job or request to pick up changes made by other processes.
+     */
+    public static function forgetLoadedSettings()
+    {
+        static::$all_settings = null;
     }
 
     /**
@@ -536,8 +556,7 @@ class Setting extends Model
         Cache::forget($cachePrefix . '.all');
         Cache::forget($cachePrefix . '.rules');
 
-        // Also clear the static variable
-        static::$all_settings = null;
+        static::forgetLoadedSettings();
     }
 
     /**
