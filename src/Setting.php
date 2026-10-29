@@ -519,7 +519,10 @@ class Setting extends Model
                 // A regex setting holds a pattern, validated as a string
                 $type = $setting->type === 'regex' ? 'string' : $setting->type;
 
-                return [$setting->key => implode('|', array_filter([$setting->rules, $type]))];
+                // Rule parts are trimmed: «in:a,b |string» refused «b»
+                $parts = array_map('trim', explode('|', (string) $setting->rules));
+
+                return [$setting->key => implode('|', array_filter([...$parts, $type], fn ($part) => $part !== null && $part !== ''))];
             })
             ->toArray();
     }

@@ -225,6 +225,18 @@ class SettingsTest extends TestCase
         Setting::setValue('test', 'string');
     }
 
+    public function test_rule_parts_are_trimmed()
+    {
+        Setting::create(['key' => 'theme', 'type' => 'string', 'rules' => 'nullable | in:standard,Zephyr ']);
+
+        $this->assertSame('nullable|in:standard,Zephyr|string', Setting::getValidationRules()['theme']);
+        Setting::setValue('theme', 'Zephyr');
+        $this->assertSame('Zephyr', Setting::getValue('theme'));
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        Setting::setValue('theme', 'Nonsense');
+    }
+
     public function test_create_a_setting_without_rules()
     {
         Setting::create(['key' => 'test', 'type' => 'integer']);
