@@ -75,6 +75,32 @@ class SettingsTest extends TestCase
         $this->assertTrue(setting('test_boolean2'));
     }
 
+    public function test_set_boolean_from_form_strings()
+    {
+        Setting::create(['key' => 'flag', 'type' => 'boolean', 'rules' => 'nullable|bool']);
+
+        foreach (['0' => false, '' => false, 'false' => false, 'off' => false,
+                  '1' => true, 'true' => true, 'on' => true] as $input => $expected) {
+            Setting::setValue('flag', (string) $input);
+            $this->assertSame($expected, setting('flag'), "Input '{$input}'");
+        }
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        Setting::setValue('flag', 'foo');
+    }
+
+    public function test_boolean_stored_as_json_string_is_read_correctly()
+    {
+        // Values written before setValue() cast form strings
+        Setting::create(['key' => 'zero', 'type' => 'boolean', 'value' => '0']);
+        Setting::create(['key' => 'empty', 'type' => 'boolean', 'value' => '']);
+        Setting::create(['key' => 'one', 'type' => 'boolean', 'value' => '1']);
+
+        $this->assertFalse(setting('zero'));
+        $this->assertFalse(setting('empty'));
+        $this->assertTrue(setting('one'));
+    }
+
     public function test_has_value()
     {
         Setting::create(['key' => 'false', 'value' => false, 'type' => 'boolean', 'rules' => 'nullable|bool']);
