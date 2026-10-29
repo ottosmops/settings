@@ -130,7 +130,9 @@ class Setting extends Model
                 return $decoded;
             case 'int':
             case 'integer':
-                return intval($value);
+                // Values stored as JSON strings ("12", "-5") before setValue() cast them
+                $decoded = json_decode($value, true);
+                return intval(is_string($decoded) ? $decoded : $value);
             case 'bool':
             case 'boolean':
                 // Values stored as JSON strings ("0", "") before setValue() cast them
@@ -267,8 +269,11 @@ class Setting extends Model
             $cast = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             $value = $cast ?? $value;
         }
-        if ($setting->type === 'integer' && is_string($value) && ctype_digit($value)) {
-            $value = (int) $value;
+        // Form input arrives as string: "12", "-5", "" (empty field clears the setting)
+        // Unknown strings are kept as they are, so validation can reject them
+        if ($setting->type === 'integer' && is_string($value)) {
+            $cast = filter_var($value, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+            $value = trim($value) === '' ? null : ($cast ?? $value);
         }
 
         if ($validate) {

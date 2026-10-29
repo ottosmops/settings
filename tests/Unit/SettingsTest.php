@@ -101,6 +101,32 @@ class SettingsTest extends TestCase
         $this->assertTrue(setting('one'));
     }
 
+    public function test_set_integer_from_form_strings()
+    {
+        Setting::create(['key' => 'number', 'type' => 'integer', 'value' => 1]);
+
+        foreach (['12' => 12, '-5' => -5, '0' => 0, ' 7 ' => 7] as $input => $expected) {
+            Setting::setValue('number', (string) $input);
+            $this->assertSame($expected, setting('number'), "Input '{$input}'");
+        }
+
+        Setting::setValue('number', '');
+        $this->assertFalse(Setting::hasValue('number'));
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        Setting::setValue('number', 'ten');
+    }
+
+    public function test_integer_stored_as_json_string_is_read_correctly()
+    {
+        // Values written before setValue() cast form strings
+        Setting::create(['key' => 'positive', 'type' => 'integer', 'value' => '12']);
+        Setting::create(['key' => 'negative', 'type' => 'integer', 'value' => '-5']);
+
+        $this->assertSame(12, setting('positive'));
+        $this->assertSame(-5, setting('negative'));
+    }
+
     public function test_has_value()
     {
         Setting::create(['key' => 'false', 'value' => false, 'type' => 'boolean', 'rules' => 'nullable|bool']);

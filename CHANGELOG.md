@@ -5,6 +5,16 @@ All notable changes to `ottosmops/settings` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2] - 2026-10-29
+
+### Fixed
+- Boolean settings set from form input such as `"0"` or `""` were stored as JSON strings and read as `true`; `setValue()` now casts them, and values already stored that way are read correctly (#8)
+- Integer settings set from a negative string such as `"-5"`, or created with a string value, were read as `0`; `setValue()` now casts them, and values already stored that way are read correctly
+- An empty string clears an integer setting instead of being read as `0`
+
+### Changed
+- Boolean settings also accept `yes`, `no`, `on` and `off` in `setValue()`, as `settings:set` already did (#8)
+
 ## [2.4.1] - 2026-10-29
 
 ### Fixed
