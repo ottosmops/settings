@@ -460,6 +460,28 @@ class SettingsTest extends TestCase
         $this->assertSame('string', $rules['pattern']);
     }
 
+    public function test_set_value_clears_setting_without_nullable()
+    {
+        Setting::create(['key' => 'fonds', 'type' => 'array', 'value' => ['a']]);
+        Setting::create(['key' => 'count', 'type' => 'integer', 'rules' => 'min:1', 'value' => 3]);
+        Setting::create(['key' => 'flag', 'type' => 'boolean', 'value' => true]);
+        Setting::create(['key' => 'pattern', 'type' => 'regex', 'value' => '#a#']);
+
+        foreach (['fonds', 'count', 'flag', 'pattern'] as $key) {
+            Setting::setValue($key, null);
+            $this->assertFalse(Setting::hasValue($key));
+            $this->assertSame('default', setting($key, 'default'));
+        }
+    }
+
+    public function test_set_value_refuses_null_if_required()
+    {
+        Setting::create(['key' => 'fonds', 'type' => 'array', 'rules' => 'required ', 'value' => ['a']]);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        Setting::setValue('fonds', null);
+    }
+
     public function test_settings_are_reloaded_for_each_job()
     {
         Setting::create(['key' => 'worker', 'type' => 'string', 'value' => 'old']);

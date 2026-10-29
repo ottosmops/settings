@@ -5,6 +5,11 @@ All notable changes to `ottosmops/settings` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2026-10-29
+
+### Fixed
+- `setValue($key, null)` failed for every setting whose rules lack `nullable`, because the type part (`array`, `integer`, `boolean`) refused null; clearing a setting is now allowed unless its rules contain `required`
+
 ## [2.4.0] - 2026-10-29
 
 ### Added

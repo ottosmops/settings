@@ -374,6 +374,11 @@ class Setting extends Model
      */
     public function validateNewValue($value, bool $throwValidationException = false): bool
     {
+        // Clearing a setting is allowed unless its rules require a value
+        if ($value === null && !in_array('required', array_map('trim', explode('|', (string) $this->rules)), true)) {
+            return true;
+        }
+
         $valueString = $this->formatValueForMessage($value);
 
         if ($this->type === 'regex') {
