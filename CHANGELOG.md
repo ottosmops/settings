@@ -5,6 +5,23 @@ All notable changes to `ottosmops/settings` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-10-29
+
+### Fixed
+- Validation rules were never loaded on MySQL, so `setValue()` accepted any value; rules are now built independently of the database driver (also fixes PostgreSQL)
+- `setting()` returned the default for the string `"0"` (#7)
+- `settingAsString()` returned the default for falsy values such as `"0"`; it now returns the default only if the value is null
+- `Setting::set()` reset type and editable flag of an existing setting to `string` and `true`
+- `Setting::set()` rejected a type alias (`int`, `bool`, `arr`) of the existing type
+- `php artisan settings:list` failed with a call to the removed helper `str_limit()`
+- Regex values were stored wrongly if `value` came before `type` in the attributes, and regexes containing `"` could not be read back
+- String values lost leading and trailing double quotes
+
+### Changed
+- An empty array now counts as a value: `setting()` returns `[]` instead of the default
+- Regex values are stored as plain JSON; values stored by earlier versions are still read correctly
+- `getValidationRules()` returns `string` instead of `regex` for the type part of regex settings
+
 ## [2.2.0] - 2026-10-17
 
 ### Removed

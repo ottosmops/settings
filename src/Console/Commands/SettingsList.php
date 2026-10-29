@@ -3,6 +3,7 @@
 namespace Ottosmops\Settings\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use Ottosmops\Settings\Setting;
 
 class SettingsList extends Command
@@ -37,7 +38,7 @@ class SettingsList extends Command
                 $setting->type,
                 $setting->scope ?? '-',
                 $setting->editable ? 'Yes' : 'No',
-                str_limit($setting->description ?? '-', 50),
+                Str::limit($setting->description ?? '-', 50),
             ];
         }
 

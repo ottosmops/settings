@@ -33,36 +33,39 @@ class Setting extends Model
 
     protected function asJson($value, $flags = 0)
     {
-        if (is_string($value) && $this->type == 'regex') {
-            $value = str_replace('\\', 'ç€π', $value);
-            $value = str_replace('/', '@∆ª', $value);
-        }
         return json_encode($value, $flags | JSON_UNESCAPED_UNICODE);
     }
 
     public function setTypeAttribute($value)
     {
-        switch ($value) {
+        $this->attributes['type'] = self::normalizeType($value);
+    }
+
+    /**
+     * Map a type alias (arr, int, bool) to its canonical name
+     *
+     * @param  string  $type
+     * @return string
+     * @throws \UnexpectedValueException
+     */
+    public static function normalizeType($type): string
+    {
+        switch ($type) {
             case 'arr':
             case 'array':
-                $this->attributes['type'] = 'array';
-                break;
+                return 'array';
             case 'int':
             case 'integer':
-                $this->attributes['type'] = 'integer';
-                break;
+                return 'integer';
             case 'bool':
             case 'boolean':
-                $this->attributes['type'] = 'boolean';
-                break;
+                return 'boolean';
             case 'regex':
-                $this->attributes['type'] = 'regex';
-                break;
+                return 'regex';
             case 'string':
-                $this->attributes['type'] = 'string';
-                break;
+                return 'string';
             default:
-                throw new \UnexpectedValueException($value);
+                throw new \UnexpectedValueException($type);
         }
     }
 
@@ -139,15 +142,21 @@ class Setting extends Model
                 if (!is_string($value)) {
                     throw new \UnexpectedValueException("Expected string for regex key '{$this->key}', got " . gettype($value));
                 }
+                $decoded = json_decode($value, true);
+                $value = is_string($decoded) ? $decoded : trim($value, '"');
+                // Values stored before 2.3.0 use placeholders for backslash and slash
                 $value = str_replace('ç€π', '\\', $value);
-                $value = str_replace('@∆ª', '/', $value);
-                return trim($value, '"');
+                return str_replace('@∆ª', '/', $value);
             case 'string':
                 $decoded = json_decode($value, true);
                 if (!is_string($decoded) && $decoded !== null) {
                     throw new \UnexpectedValueException("Expected string for key '{$this->key}', got " . gettype($decoded));
                 }
-                return is_string($decoded) ? trim($decoded, '"') : $decoded;
+                // Fall back to the raw value if it was not stored as JSON
+                if ($decoded === null && $value !== 'null') {
+                    return trim($value, '"');
+                }
+                return $decoded;
             default:
                 if (!is_string($value)) {
                     throw new \UnexpectedValueException("Expected string for key '{$this->key}', got " . gettype($value));
@@ -175,11 +184,6 @@ class Setting extends Model
                     return "false";
                 }
                 return "true";
-            case 'regex':
-                $value = str_replace('ç€π', '\\', $value);
-                $value = str_replace('@∆ª', '/', $value);
-            case 'string':
-                $value =  trim($value, '"');
             default:
                 return (string) $value;
         }
@@ -189,7 +193,7 @@ class Setting extends Model
      * Get a type casted setting value
      *
      * @param  string $key
-     * @param  mixed  $default is returned if value is empty (except boolean false)
+     * @param  mixed  $default is returned if value is null
      * @return mixed
      * @throws NoKeyIsFound
      */
@@ -214,7 +218,7 @@ class Setting extends Model
 
         $setting = static::where('key', $key)->first();
 
-        return $setting->valueAsString ?? $default;
+        return $setting->value === null ? $default : $setting->valueAsString;
     }
 
     /**
@@ -236,12 +240,7 @@ class Setting extends Model
      */
     public static function hasValue(string $key): bool
     {
-        if (self::has($key) && isset(Setting::allSettings()[$key]['value'])) {
-            $value = Setting::allSettings()[$key]['value'];
-            return $value !== null;
-        }
-
-        return false;
+        return self::has($key) && isset(Setting::allSettings()[$key]['value']);
     }
 
     /**
@@ -317,14 +316,18 @@ class Setting extends Model
     {
         $setting = static::firstOrNew(['key' => $key]);
 
-        if ($setting->exists && isset($attributes['type']) && $setting->type !== $attributes['type']) {
+        if ($setting->exists && isset($attributes['type']) && $setting->type !== self::normalizeType($attributes['type'])) {
             throw new \InvalidArgumentException("Cannot change type of existing setting '{$key}' from '{$setting->type}' to '{$attributes['type']}'");
         }
 
-        $setting->fill(array_merge([
-            'type' => 'string',
-            'editable' => true,
-        ], $attributes));
+        if (!$setting->exists) {
+            $attributes = array_merge([
+                'type' => 'string',
+                'editable' => true,
+            ], $attributes);
+        }
+
+        $setting->fill($attributes);
 
         if ($value !== null) {
             $setting->value = $value;
@@ -509,16 +512,15 @@ class Setting extends Model
      */
     private static function buildValidationRules(): array
     {
-        if ('mysql' === \DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
-            return Setting::select(\DB::raw('concat_ws("|", rules, type) as rules'))
-                ->select('key')
-                ->get()
-                ->pluck('rules', 'key')
-                ->toArray();
-        }
+        return Setting::query()
+            ->toBase()
+            ->get(['key', 'rules', 'type'])
+            ->mapWithKeys(function ($setting) {
+                // A regex setting holds a pattern, validated as a string
+                $type = $setting->type === 'regex' ? 'string' : $setting->type;
 
-        return Setting::select(\DB::raw("printf('%s|%s', rules, type) as rules, `key`"))
-            ->pluck('rules', 'key')
+                return [$setting->key => implode('|', array_filter([$setting->rules, $type]))];
+            })
             ->toArray();
     }
 

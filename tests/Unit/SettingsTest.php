@@ -96,6 +96,23 @@ class SettingsTest extends TestCase
         $this->assertSame('0', Setting::getValueAsString('zero_string'));
     }
 
+    public function test_value_as_string_returns_default_for_null()
+    {
+        Setting::create(['key' => 'no_value', 'type' => 'string']);
+        Setting::create(['key' => 'empty_string', 'value' => '', 'type' => 'string']);
+
+        $this->assertSame('default', settingAsString('no_value', 'default'));
+        $this->assertSame('', settingAsString('empty_string', 'default'));
+    }
+
+    public function test_empty_array_is_a_value()
+    {
+        Setting::create(['key' => 'empty_array', 'value' => [], 'type' => 'array']);
+
+        $this->assertTrue(Setting::hasValue('empty_array'));
+        $this->assertSame([], setting('empty_array', ['default']));
+    }
+
     public function test_set_and_get_setting_array()
     {
         $array = ['hans' => 'dampf', 'in' => 'allen', 'gassen'];
@@ -241,6 +258,49 @@ class SettingsTest extends TestCase
         $this->assertEquals($regex, setting('regex'));
     }
 
+    public function test_regex_independent_of_attribute_order()
+    {
+        $regex = '#\d{3}/[0-9]#';
+        Setting::create(['key' => 'type_first', 'type' => 'regex', 'value' => $regex]);
+        Setting::create(['key' => 'value_first', 'value' => $regex, 'type' => 'regex']);
+
+        $this->assertSame($regex, setting('type_first'));
+        $this->assertSame($regex, setting('value_first'));
+        $this->assertSame($regex, settingAsString('value_first'));
+    }
+
+    public function test_regex_with_quotes()
+    {
+        $regex = '/"a"\s/';
+        Setting::create(['key' => 'regex', 'type' => 'regex', 'value' => $regex]);
+
+        $this->assertSame($regex, setting('regex'));
+    }
+
+    public function test_regex_stored_with_legacy_placeholders()
+    {
+        \DB::table('settings')->insert(['key' => 'regex', 'type' => 'regex', 'value' => '"#ç€πd{3}@∆ª[0-9]#"']);
+        Setting::flushCache();
+
+        $this->assertSame('#\d{3}/[0-9]#', setting('regex'));
+    }
+
+    public function test_string_keeps_quotes()
+    {
+        Setting::create(['key' => 'quoted', 'type' => 'string', 'value' => '"Zitat"']);
+
+        $this->assertSame('"Zitat"', setting('quoted'));
+        $this->assertSame('"Zitat"', settingAsString('quoted'));
+    }
+
+    public function test_string_stored_without_json()
+    {
+        \DB::table('settings')->insert(['key' => 'plain', 'type' => 'string', 'value' => 'plain text']);
+        Setting::flushCache();
+
+        $this->assertSame('plain text', setting('plain'));
+    }
+
     public function test_value_mutator()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -276,6 +336,41 @@ class SettingsTest extends TestCase
 
         $this->assertEquals('test_value', setting('new_key'));
         $this->assertEquals('string', Setting::where('key', 'new_key')->first()->type);
+    }
+
+    public function test_set_keeps_type_and_editable_of_existing_setting()
+    {
+        Setting::create(['key' => 'number', 'value' => 5, 'type' => 'integer', 'editable' => false]);
+
+        Setting::set('number', 6);
+
+        $setting = Setting::find('number');
+        $this->assertSame('integer', $setting->type);
+        $this->assertFalse($setting->editable);
+        $this->assertSame(6, setting('number'));
+    }
+
+    public function test_set_accepts_type_alias_of_existing_type()
+    {
+        Setting::create(['key' => 'number', 'value' => 5, 'type' => 'integer']);
+
+        Setting::set('number', 7, ['type' => 'int']);
+        $this->assertSame(7, setting('number'));
+
+        $this->expectException(\InvalidArgumentException::class);
+        Setting::set('number', 8, ['type' => 'string']);
+    }
+
+    public function test_list_command()
+    {
+        Setting::create(['key' => 'listed', 'value' => 'value', 'type' => 'string', 'description' => 'A setting']);
+
+        $this->artisan('settings:list')
+            ->expectsTable(
+                ['Key', 'Value', 'Type', 'Scope', 'Editable', 'Description'],
+                [['listed', 'value', 'string', '-', 'Yes', 'A setting']]
+            )
+            ->assertExitCode(0);
     }
 
     public function test_get_by_scope()
@@ -340,5 +435,16 @@ class SettingsTest extends TestCase
         ], $rules);
 
         $this->assertTrue($validator->fails());
+    }
+
+    public function test_validation_rules_without_rules()
+    {
+        Setting::create(['key' => 'number', 'type' => 'integer']);
+        Setting::create(['key' => 'pattern', 'type' => 'regex']);
+
+        $rules = Setting::getValidationRules();
+
+        $this->assertSame('integer', $rules['number']);
+        $this->assertSame('string', $rules['pattern']);
     }
 }
