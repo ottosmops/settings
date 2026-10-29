@@ -133,10 +133,13 @@ class Setting extends Model
                 return intval($value);
             case 'bool':
             case 'boolean':
-                if ($value === "false") {
-                    return false;
+                // Values stored as JSON strings ("0", "") before setValue() cast them
+                $decoded = json_decode($value, true);
+                if (is_string($decoded)) {
+                    $value = $decoded;
                 }
-                return boolval($value);
+                $cast = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                return $cast ?? boolval($value);
             case 'regex':
                 if (!is_string($value)) {
                     throw new \UnexpectedValueException("Expected string for regex key '{$this->key}', got " . gettype($value));
@@ -258,9 +261,11 @@ class Setting extends Model
 
         $setting = self::find($key);
 
+        // Form input arrives as string: "0", "1", "", "true", "false", "on", "off", ...
+        // Unknown strings are kept as they are, so validation can reject them
         if ($setting->type === 'boolean' && is_string($value)) {
-            $value = ($value === 'false') ? false : $value;
-            $value = ($value === 'true')  ? true  : $value;
+            $cast = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $value = $cast ?? $value;
         }
         if ($setting->type === 'integer' && is_string($value) && ctype_digit($value)) {
             $value = (int) $value;
